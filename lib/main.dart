@@ -1,122 +1,146 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
+// The main() function is the starting point for all Flutter apps.
 void main() {
   runApp(const MyApp());
 }
 
+// MyApp is the root widget of your application.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // MaterialApp is the main container for the app, where we define themes and navigation.
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false, // This removes the little "debug" banner
+      
+      // Here we define the dark theme we designed.
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF121212), // Off-Black
+        fontFamily: 'sans-serif',
+        
+        // Define the style for the bar at the top of each screen
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF121212),
+          elevation: 0,
+          titleTextStyle: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFEAEAEA), // Off-White
+          ),
+        ),
+        
+        // Define the style for the navigation bar at the bottom
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Color(0x381E1E1E),     // Dark Grey for the nav bar
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      
+      // The 'home' is the first screen that appears when the app launches.
+      home: const MainScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+// This will be the main screen that holds our three tabs.
+// We make it a StatefulWidget because we need to keep track of which tab is currently selected.
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MainScreenState extends State<MainScreen> {
+  int _selectedIndex = 0; // Index 0 is Lessons, Index 1 is Calendar
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  final List<Widget> _screenWidgets = [
+    Scaffold(
+      appBar: AppBar(title: const Text('LESSONS')),
+      body: const Center(
+        child: Text('Lessons Screen Content', style: TextStyle(color: Colors.white, fontSize: 18)),
+      ),
+    ),
+    Scaffold(
+      appBar: AppBar(title: const Text('CALENDAR')),
+      body: const Center(
+        child: Text('Calendar Screen Content', style: TextStyle(color: Colors.white, fontSize: 18)),
+      ),
+    ),
+  ];
+
+  void _onItemTapped(int visualIndex) {
+    if (visualIndex == 1) {
+      // TODO: Navigate to the ReflectScreen here later
+      print('Central Add button tapped!');
+    } else {
+      setState(() {
+        _selectedIndex = (visualIndex == 0) ? 0 : 1;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: _screenWidgets[_selectedIndex],
+      bottomNavigationBar: BottomAppBar(
+        // ignore: deprecated_member_use
+        color: const Color(0xAB1E1E1E),
+        height: 80,
+        elevation: 0,
+        padding: EdgeInsets.zero,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            IconButton(
+              onPressed: () => _onItemTapped(0),
+              icon: SvgPicture.asset(
+                _selectedIndex == 0 ? 'assets/icons/book_icon_white.svg' : 'assets/icons/book_icon_grey.svg',
+                // **FIX #2: Increased icon size for balance**
+                width: 32,
+                height: 32,
+              ),
+            ),
+            const SizedBox(width: 60),
+            IconButton(
+              onPressed: () => _onItemTapped(2),
+              icon: SvgPicture.asset(
+                _selectedIndex == 1 ? 'assets/icons/calendar_icon_white.svg' : 'assets/icons/calendar_icon_grey.svg',
+                // **FIX #2: Increased icon size for balance**
+                width: 32,
+                height: 32,
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Transform.translate(
+        // **FIX #1: Reduced the offset to lift the button**
+        offset: const Offset(0, 40),
+        child: GestureDetector(
+          onTap: () => _onItemTapped(1),
+          child: Container(
+            width: 76,
+            height: 76,
+            decoration: const BoxDecoration(
+              color: Color(0xFF282828),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                'assets/icons/add_icon_grey.svg',
+                width: 43,
+                height: 43,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

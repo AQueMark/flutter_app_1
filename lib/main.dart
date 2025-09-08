@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_app_1/screens/reflect_screen.dart';
 import 'package:flutter_app_1/screens/calendar_screen.dart';
+import 'package:flutter_app_1/screens/lessons_screen.dart';
 
 // Assuming you will create this file for the Lessons screen
 // import 'package:flutter_app_1/screens/lessons_screen.dart';
@@ -38,11 +39,7 @@ class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
   final List<Widget> _screenWidgets = [
-    // Placeholder for Lessons Screen
-    const Scaffold(
-      backgroundColor: Color(0xFF121212),
-      body: Center(child: Text('Lessons Screen', style: TextStyle(color: Colors.white))),
-    ),
+    const LessonsScreen(),
     const ReflectScreen(),
     const CalendarScreen(),
   ];

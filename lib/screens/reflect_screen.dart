@@ -74,7 +74,7 @@ class _ReflectScreenState extends State<ReflectScreen> {
                     formattedDate,
                     style: const TextStyle(
                       color: Color(0xB7EAEAEA),
-                      fontSize: 18,
+                      fontSize: 21,
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.w400,
                     ),

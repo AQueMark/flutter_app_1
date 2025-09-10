@@ -1,23 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app_1/utils/database_helper.dart';
 
 class LessonsScreen extends StatefulWidget {
   const LessonsScreen({super.key});
 
   @override
-  State<LessonsScreen> createState() => _LessonsScreenState();
+  LessonsScreenState createState() => LessonsScreenState();
 }
 
-class _LessonsScreenState extends State<LessonsScreen> {
-  // This is our list of mock (fake) data for the lessons.
-  final List<String> lessons = [
-    'Embrace change',
-    'Trust your intuition',
-    'Failure is a teacher',
-  ];
+class LessonsScreenState extends State<LessonsScreen> {
+  late Future<List<Lesson>> _lessonsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _lessonsFuture = _fetchLessons();
+  }
+
+  Future<List<Lesson>> _fetchLessons() {
+    // We get the lessons and reverse them so the newest appears first
+    return DatabaseHelper.instance.getAllLessons().then((lessons) => lessons.reversed.toList());
+  }
+
+  void refreshLessons() {
+    setState(() {
+      _lessonsFuture = _fetchLessons();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    // We use a Stack to layer the UI on top of the background image.
     return Stack(
       children: [
         // 1. The Background Image
@@ -29,13 +41,15 @@ class _LessonsScreenState extends State<LessonsScreen> {
             ),
           ),
         ),
-
+        // This adds a dark overlay to ensure text is always readable
+        Container(
+           color: Colors.black.withOpacity(0.3),
+        ),
         // 2. The UI Content (on top of the image)
         SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // This is the header with the title
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
@@ -55,27 +69,49 @@ class _LessonsScreenState extends State<LessonsScreen> {
                   ],
                 ),
               ),
-              
-              // This is the main scrolling area for the lessons
               Expanded(
-                child: PageView.builder(
-                  // This tells the PageView how many items (lessons) we have.
-                  scrollDirection: Axis.vertical,
-                  itemCount: lessons.length,
-                  // This builder is called for each lesson to create its page.
-                  itemBuilder: (context, index) {
-                    return Center(
-                      child: Text(
-                        lessons[index], // Display the lesson text
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 30, // You can adjust this size
-                          fontFamily: 'Jaldi',
-                          fontWeight: FontWeight.w600,
+                child: FutureBuilder<List<Lesson>>(
+                  future: _lessonsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                      final lessons = snapshot.data!;
+                      // This is the full-screen, vertically scrolling feed
+                      return PageView.builder(
+                        scrollDirection: Axis.vertical,
+                        itemCount: lessons.length,
+                        itemBuilder: (context, index) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                              child: Text(
+                                lessons[index].lesson,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 36,
+                                  fontFamily: 'Jaldi',
+                                  fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(blurRadius: 10.0, color: Colors.black),
+                                  ]
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    } else {
+                      // Show this if there are no lessons yet
+                      return const Center(
+                        child: Text(
+                          'No lessons saved yet.\nTap the + button to add one.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white, fontSize: 18),
                         ),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
               ),

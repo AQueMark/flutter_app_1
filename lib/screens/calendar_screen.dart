@@ -1,54 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_app_1/utils/database_helper.dart';
+import 'package:flutter_app_1/screens/reflect_screen.dart';
+import 'package:flutter_app_1/main.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
 
   @override
-  State<CalendarScreen> createState() => _CalendarScreenState();
+  CalendarScreenState createState() => CalendarScreenState();
 }
 
-class _CalendarScreenState extends State<CalendarScreen> {
+class CalendarScreenState extends State<CalendarScreen> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
+  List<Lesson> _allLessons = [];
 
-  final List<DateTime> _daysWithEntries = [
-    DateTime.utc(2025, 9, 2),
-    DateTime.utc(2025, 9, 10),
-    DateTime.utc(2025, 9, 15),
-    DateTime.utc(2025, 9, 22),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchLessons();
+  }
+
+  void refreshCalendar() {
+    _fetchLessons();
+  }
+
+  Future<void> _fetchLessons() async {
+    final lessons = await DatabaseHelper.instance.getAllLessons();
+    if (mounted) {
+      setState(() {
+        _allLessons = lessons;
+      });
+    }
+  }
+
+  List<Lesson> _getLessonsForDay(DateTime day) {
+    final dayOnly = DateTime(day.year, day.month, day.day);
+    return _allLessons.where((lesson) {
+      final lessonDayOnly = DateTime(lesson.date.year, lesson.date.month, lesson.date.day);
+      return isSameDay(lessonDayOnly, dayOnly);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bool hasEntry = _daysWithEntries.any((day) => isSameDay(day, _selectedDay));
+    final lessonsForSelectedDay = _getLessonsForDay(_selectedDay);
+    final bool hasEntry = lessonsForSelectedDay.isNotEmpty;
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 44),
-            const Text(
-              'REMEMBER',
-              style: TextStyle(
-                color: Color(0xFCEAEAEA),
-                fontSize: 32,
-                fontFamily: 'K2D',
-                fontWeight: FontWeight.w400,
-                letterSpacing: 2.40,
+    return Scaffold(
+      backgroundColor: const Color(0xFF121212),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 44),
+              const Text(
+                'REMEMBER',
+                style: TextStyle(
+                    color: Color(0xFCEAEAEA),
+                    fontSize: 32,
+                    fontFamily: 'K2D',
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 2.40,
+                  ),
               ),
-            ),
-            const SizedBox(height: 36),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: const Color.fromARGB(255, 44, 44, 44), width: 0.5),
-                ),
-              ),
-              child: TableCalendar(
+              const SizedBox(height: 32),
+              TableCalendar(
                 firstDay: DateTime.utc(2020, 1, 1),
                 lastDay: DateTime.utc(2030, 12, 31),
                 focusedDay: _focusedDay,
@@ -60,58 +81,64 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     _focusedDay = focusedDay;
                   });
                 },
-                rowHeight: 60,
-                daysOfWeekHeight: 44.0,
-                // --- STYLING SECTION ---
+                enabledDayPredicate: (date) {
+                  return date.isBefore(DateTime.now()) || isSameDay(date, DateTime.now());
+                },
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
                   titleCentered: true,
                   titleTextStyle: const TextStyle(
                     color: Color(0xB7EAEAEA),
-                    fontSize: 23,
+                    fontSize: 24,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                   ),
-                  headerPadding: const EdgeInsets.only(top: 16.0, bottom: 44.0),
+                  headerPadding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
                 ),
-                daysOfWeekStyle: DaysOfWeekStyle( // CONST REMOVED
-                  weekdayStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 24),
-                  weekendStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 24),
-                  decoration: BoxDecoration(
-                     border: Border(bottom: BorderSide(color: const Color.fromARGB(255, 44, 44, 44), width: 0.5)),
-                  )
+                daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(color: Color(0xB7EAEAEA), fontSize: 18),
+                  weekendStyle: TextStyle(color: Color(0xB7EAEAEA), fontSize: 18),
                 ),
-                calendarStyle: CalendarStyle( // CONST REMOVED
-                  defaultTextStyle: const TextStyle(color: Colors.white, fontSize: 21),
-                  weekendTextStyle: const TextStyle(color: Colors.white, fontSize: 21),
+                calendarStyle: const CalendarStyle(
+                  defaultTextStyle: TextStyle(color: Colors.white, fontSize: 18),
+                  weekendTextStyle: TextStyle(color: Colors.white, fontSize: 18),
                   outsideDaysVisible: false,
-                   rowDecoration: BoxDecoration(
-                     border: Border(top: BorderSide(color: const Color.fromARGB(255, 44, 44, 44), width: 0.5)),
-                   )
                 ),
                 calendarBuilders: CalendarBuilders(
+                  disabledBuilder: (context, date, events) => Center(
+                    child: Text(
+                      '${date.day}',
+                      style: TextStyle(color: Colors.grey.shade800, fontSize: 18),
+                    ),
+                  ),
                   dowBuilder: (context, day) {
                     final text = DateFormat.E().format(day);
                     return Center(
                       child: Text(
                         text.substring(0, 1),
-                        style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 22),
+                        style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 18),
                       ),
                     );
                   },
                   defaultBuilder: (context, day, focusedDay) {
-                    if (_daysWithEntries.any((entryDay) => isSameDay(entryDay, day))) {
-                      return Center(
+                    if (_getLessonsForDay(day).isNotEmpty) {
+                      return Container(
+                        margin: const EdgeInsets.all(6.0),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                         child: Text(
                           '${day.day}',
-                          style: const TextStyle(color: Color.fromARGB(255, 12, 122, 83), fontSize: 22),
+                          style: const TextStyle(color: Colors.white, fontSize: 18),
                         ),
                       );
                     }
                     return null;
                   },
                   selectedBuilder: (context, date, events) => Container(
-                    margin: const EdgeInsets.all(8.0),
+                    margin: const EdgeInsets.all(6.0),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: Colors.grey.shade800,
@@ -121,35 +148,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   ),
                 ),
               ),
-            ),
-            const Spacer(),
-            Center(
-              child:SizedBox(
-                width:175,            
-              child: ElevatedButton(
-                onPressed: () {
-                  print('Button tapped for date: $_selectedDay');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE0E0E0),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 16),
-                ),
-                child: Text(
-                  hasEntry ? 'VIEW' : 'ADD',
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 21,
+              const Spacer(),
+              Center(
+                child: SizedBox(
+                  width: 175,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
+                      // This is the corrected function name
+                      mainScreenState?.navigateToReflectWithDate(_selectedDay);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 16),
+                    ),
+                    child: Text(
+                      hasEntry ? 'VIEW' : 'ADD',
+                      style: const TextStyle(
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 21,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            )),
-            const SizedBox(height: 62),
-          ],
+              const SizedBox(height: 62),
+            ],
+          ),
         ),
       ),
     );

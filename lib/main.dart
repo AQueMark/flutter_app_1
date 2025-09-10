@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_app_1/screens/reflect_screen.dart';
 import 'package:flutter_app_1/screens/calendar_screen.dart';
 import 'package:flutter_app_1/screens/lessons_screen.dart';
 
-// Assuming you will create this file for the Lessons screen
-// import 'package:flutter_app_1/screens/lessons_screen.dart';
-
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(const MyApp());
 }
 
@@ -32,19 +35,52 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  DateTime? _dateForReflectScreen;
 
-  final List<Widget> _screenWidgets = [
-    const LessonsScreen(),
-    const ReflectScreen(),
-    const CalendarScreen(),
-  ];
+  final GlobalKey<LessonsScreenState> _lessonsScreenKey = GlobalKey<LessonsScreenState>();
+  final GlobalKey<CalendarScreenState> _calendarScreenKey = GlobalKey<CalendarScreenState>();
+
+  // This is the new function that ReflectScreen will call after saving
+  void navigateToLessonsAndRefresh() {
+    setState(() {
+      _selectedIndex = 0; // Switch to the Lessons tab
+    });
+    _lessonsScreenKey.currentState?.refreshLessons();
+    _calendarScreenKey.currentState?.refreshCalendar();
+  }
+
+  // This is the new function that ReflectScreen will call after deleting
+  void navigateToCalendarAndRefresh() {
+    setState(() {
+      _selectedIndex = 2; // Switch to the Calendar tab
+    });
+    _lessonsScreenKey.currentState?.refreshLessons();
+    _calendarScreenKey.currentState?.refreshCalendar();
+  }
+  
+  // This function is for the Calendar screen to open the Reflect screen
+  void navigateToReflectWithDate(DateTime date) {
+    setState(() {
+      _dateForReflectScreen = date;
+      _selectedIndex = 1;
+    });
+  }
 
   void _onItemTapped(int index) {
+    // When leaving the Reflect screen, refresh the others
+    if (_selectedIndex == 1 && index != 1) {
+       _lessonsScreenKey.currentState?.refreshLessons();
+       _calendarScreenKey.currentState?.refreshCalendar();
+    }
+    // When tapping the '+' tab, clear any date from the calendar
+    if (index == 1) {
+      _dateForReflectScreen = null;
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -52,8 +88,15 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // We rebuild the screen list here to pass the correct date
+    final List<Widget> screenWidgets = [
+      LessonsScreen(key: _lessonsScreenKey),
+      ReflectScreen(date: _dateForReflectScreen),
+      CalendarScreen(key: _calendarScreenKey),
+    ];
+
     return Scaffold(
-      body: _screenWidgets[_selectedIndex],
+      body: screenWidgets[_selectedIndex],
       bottomNavigationBar: BottomAppBar(
         color: const Color(0xFF1E1E1E).withOpacity(0.98),
         height: 80,
@@ -70,10 +113,7 @@ class _MainScreenState extends State<MainScreen> {
                 height: 32,
               ),
             ),
-            IconButton(
-              onPressed: null,
-              icon: const SizedBox(width: 60),
-            ),
+            const SizedBox(width: 60),
             IconButton(
               onPressed: () => _onItemTapped(2),
               icon: SvgPicture.asset(
@@ -88,79 +128,21 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Transform.translate(
         offset: const Offset(0, 40),
-        // We now use our new custom widget here
-        child: CustomCentralButton(
+        child: GestureDetector(
           onTap: () => _onItemTapped(1),
-          isSelected: _selectedIndex == 1,
-        ),
-      ),
-    );
-  }
-}
-
-// -----------------------------------------------------------------
-// NEW CUSTOM BUTTON WIDGET
-// This widget handles its own press and release animations.
-// -----------------------------------------------------------------
-class CustomCentralButton extends StatefulWidget {
-  final VoidCallback onTap;
-  final bool isSelected;
-
-  const CustomCentralButton({
-    super.key,
-    required this.onTap,
-    required this.isSelected,
-  });
-
-  @override
-  State<CustomCentralButton> createState() => _CustomCentralButtonState();
-}
-
-class _CustomCentralButtonState extends State<CustomCentralButton> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) {
-        setState(() {
-          _isPressed = true;
-        });
-      },
-      onTapUp: (_) {
-        setState(() {
-          _isPressed = false;
-        });
-        widget.onTap();
-      },
-      onTapCancel: () {
-        setState(() {
-          _isPressed = false;
-        });
-      },
-      child: AnimatedScale(
-        scale: _isPressed ? 0.9 : 1.0, // Shrinks when pressed
-        duration: const Duration(milliseconds: 150),
-        child: Container(
-          width: 76,
-          height: 76,
-          decoration: BoxDecoration(
-            color: const Color(0xFF282828),
-            shape: BoxShape.circle,
-            boxShadow: [
-              if (_isPressed) // Adds a subtle glow when pressed
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.5),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                )
-            ],
-          ),
-          child: Center(
-            child: SvgPicture.asset(
-              widget.isSelected ? 'assets/icons/add_icon_white.svg' : 'assets/icons/add_icon_grey.svg',
-              width: 43,
-              height: 43,
+          child: Container(
+            width: 76,
+            height: 76,
+            decoration: const BoxDecoration(
+              color: Color(0xFF282828),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                _selectedIndex == 1 ? 'assets/icons/add_icon_white.svg' : 'assets/icons/add_icon_grey.svg',
+                width: 43,
+                height: 43,
+              ),
             ),
           ),
         ),

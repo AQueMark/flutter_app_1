@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_app_1/utils/database_helper.dart';
-import 'package:flutter_app_1/main.dart'; // Import added here
+import 'package:flutter_app_1/main.dart';
 
 class ReflectScreen extends StatefulWidget {
   final DateTime? date;
@@ -76,7 +76,7 @@ class _ReflectScreenState extends State<ReflectScreen> {
   }
 
   void _updateSaveButtonState() {
-    final bool isNotEmpty = _incidentController.text.isNotEmpty && _lessonController.text.isNotEmpty;
+    final bool isNotEmpty = _incidentController.text.trim().isNotEmpty && _lessonController.text.trim().isNotEmpty;
     final bool hasChanged = _incidentController.text != _initialIncidentText ||
                            _lessonController.text != _initialLessonText;
 
@@ -165,11 +165,7 @@ class _ReflectScreenState extends State<ReflectScreen> {
                   ),
                   Row(
                     children: [
-                      if (_existingLesson != null)
-                        IconButton(
-                          icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
-                          onPressed: _deleteLesson,
-                        ),
+                      // SAVE BUTTON IS NOW FIRST
                       OutlinedButton(
                         onPressed: _isSaveButtonEnabled ? _saveLesson : null,
                         style: OutlinedButton.styleFrom(
@@ -192,6 +188,14 @@ class _ReflectScreenState extends State<ReflectScreen> {
                           ),
                         ),
                       ),
+                      // DELETE BUTTON IS NOW SECOND
+                      if (_existingLesson != null)
+                        const SizedBox(width: 8),
+                      if (_existingLesson != null)
+                        IconButton(
+                          icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
+                          onPressed: _deleteLesson,
+                        ),
                     ],
                   ),
                 ],
@@ -209,18 +213,18 @@ class _ReflectScreenState extends State<ReflectScreen> {
               const SizedBox(height: 14),
               TextField(
                 controller: _incidentController,
-                 maxLines: 8,
+                maxLines: 8,
                 style: const TextStyle(
-                  color: Color(0xBFAEAEAEA),
+                  color: Color(0xBFAEAEAE),
                   fontFamily: 'Jomolhari',
-                  fontSize: 18,
+                  fontSize: 17,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Describe the event or feeling without judgment..',
                   hintStyle: const TextStyle(
                     color: Color(0xBFAEAEAE),
                     fontFamily: 'Jomolhari',
-                    fontSize: 18,
+                    fontSize: 17,
                   ),
                   filled: true,
                   fillColor: const Color(0xFF282828),
@@ -246,16 +250,16 @@ class _ReflectScreenState extends State<ReflectScreen> {
                 controller: _lessonController,
                 maxLines: 4,
                 style: const TextStyle(
-                  color: Color(0xBFAEAEAEA),
+                  color: Color(0xBFAEAEAE),
                   fontFamily: 'Jomolhari',
-                  fontSize: 18,
+                  fontSize: 17,
                 ),
                 decoration: InputDecoration(
                   hintText: 'What did I learn?',
                   hintStyle: const TextStyle(
                     color: Color(0xBFAEAEAE),
                     fontFamily: 'Jomolhari',
-                    fontSize: 18,
+                    fontSize: 17,
                   ),
                   filled: true,
                   fillColor: const Color(0xFF282828),

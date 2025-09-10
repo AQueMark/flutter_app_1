@@ -5,10 +5,12 @@ import 'package:flutter_app_1/main.dart';
 
 class ReflectScreen extends StatefulWidget {
   final DateTime? date;
+  final bool isOpenedFromLessons;
 
   const ReflectScreen({
     super.key,
     this.date,
+    this.isOpenedFromLessons = false,
   });
 
   @override
@@ -50,7 +52,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
   Future<void> _loadLessonForDate(DateTime date) async {
     final dayOnly = DateTime(date.year, date.month, date.day);
-    // Reset fields before loading new data
     _incidentController.clear();
     _lessonController.clear();
     _initialIncidentText = '';
@@ -77,7 +78,7 @@ class _ReflectScreenState extends State<ReflectScreen> {
   }
 
   void _updateSaveButtonState() {
-    final bool isNotEmpty = _incidentController.text.isNotEmpty && _lessonController.text.isNotEmpty;
+    final bool isNotEmpty = _incidentController.text.trim().isNotEmpty && _lessonController.text.trim().isNotEmpty;
     final bool hasChanged = _incidentController.text != _initialIncidentText ||
                            _lessonController.text != _initialLessonText;
 
@@ -96,7 +97,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
     await DatabaseHelper.instance.upsert(lesson);
 
     if (mounted) {
-      // Find the MainScreen and tell it to go to the Lessons tab
       final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
       mainScreenState?.navigateToLessonsAndRefresh();
     }
@@ -124,7 +124,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
     if (confirmDelete && mounted) {
       await DatabaseHelper.instance.delete(_currentDate);
-      // Go back to the calendar after deleting
       final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
       mainScreenState?.navigateToCalendarAndRefresh();
     }
@@ -136,7 +135,7 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
     return GestureDetector(
       onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity! > 100) { // A strong swipe to the right
+        if (widget.isOpenedFromLessons && details.primaryVelocity! > 100) {
           Navigator.of(context).pop();
         }
       },
@@ -146,138 +145,142 @@ class _ReflectScreenState extends State<ReflectScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 44),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'REFLECT',
-                        style: TextStyle(
-                          color: Color(0xFCEAEAEA),
-                          fontSize: 32,
-                          fontFamily: 'K2D',
-                          fontWeight: FontWeight.w400,
-                          letterSpacing: 2.40,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          if (_existingLesson != null)
-                            IconButton(
-                              icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
-                              onPressed: _deleteLesson,
-                            ),
-                          OutlinedButton(
-                            onPressed: _isSaveButtonEnabled ? _saveLesson : null,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              backgroundColor: _isSaveButtonEnabled ? Colors.white : Colors.transparent,
-                              side: BorderSide(
-                                width: 1.5,
-                                color: _isSaveButtonEnabled ? Colors.white : Colors.grey.shade800,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30.0),
-                              ),
-                            ),
-                            child: Text(
-                              'Save',
-                              style: TextStyle(
-                                color: _isSaveButtonEnabled ? Colors.black : Colors.grey[600],
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+              physics: const NeverScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 44),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'REFLECT',
+                          style: TextStyle(
+                            color: Color(0xFCEAEAEA),
+                            fontSize: 32,
+                            fontFamily: 'K2D',
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 2.40,
                           ),
-                        ],
+                        ),
+                        Row(
+                          children: [
+                            if (_existingLesson != null)
+                              IconButton(
+                                icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
+                                onPressed: _deleteLesson,
+                              ),
+                            OutlinedButton(
+                              onPressed: _isSaveButtonEnabled ? _saveLesson : null,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: _isSaveButtonEnabled ? Colors.white : Colors.transparent,
+                                side: BorderSide(
+                                  width: 1.5,
+                                  color: _isSaveButtonEnabled ? Colors.white : Colors.grey.shade800,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                              ),
+                              child: Text(
+                                'Save',
+                                style: TextStyle(
+                                  color: _isSaveButtonEnabled ? Colors.black : Colors.grey[600],
+                                  fontFamily: 'Inter',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      formattedDate,
+                      style: const TextStyle(
+                        color: Color(0xB7EAEAEA),
+                        fontSize: 18,
+                        fontFamily: 'Inter',
+                        fontWeight: FontWeight.w400,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    formattedDate,
-                    style: const TextStyle(
-                      color: Color(0xB7EAEAEA),
-                      fontSize: 18,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w400,
                     ),
-                  ),
-                  const SizedBox(height: 48),
-                  const Text(
-                    'THE INCIDENT',
-                    style: TextStyle(
-                      color: Color(0xEDEAEAEA),
-                      fontSize: 22,
-                      fontFamily: 'Jaldi',
-                      fontWeight: FontWeight.w400,
+                    const SizedBox(height: 48),
+                    const Text(
+                      'THE INCIDENT',
+                      style: TextStyle(
+                        color: Color(0xEDEAEAEA),
+                        fontSize: 22,
+                        fontFamily: 'Jaldi',
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _incidentController,
-                    maxLines: 8,
-                    style: const TextStyle(
-                      color: Color(0xBFAEAEAE),
-                      fontFamily: 'Jomolhari',
-                      fontSize: 18,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Describe the event or feeling without judgment..',
-                      hintStyle: const TextStyle(
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _incidentController,
+                      maxLines: 8,
+                      style: const TextStyle(
                         color: Color(0xBFAEAEAEA),
                         fontFamily: 'Jomolhari',
                         fontSize: 18,
                       ),
-                      filled: true,
-                      fillColor: const Color(0xFF282828),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
+                      decoration: InputDecoration(
+                        hintText: 'Describe the event or feeling without judgment..',
+                        hintStyle: const TextStyle(
+                          color: Color(0xBFAEAEAEA),
+                          fontFamily: 'Jomolhari',
+                          fontSize: 18,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF282828),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.all(16),
                       ),
-                      contentPadding: const EdgeInsets.all(16),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'THE LESSON',
-                    style: TextStyle(
-                      color: Color(0xEDEAEAEA),
-                      fontSize: 22,
-                      fontFamily: 'Jaldi',
-                      fontWeight: FontWeight.w400,
+                    const SizedBox(height: 20),
+                    const Text(
+                      'THE LESSON',
+                      style: TextStyle(
+                        color: Color(0xEDEAEAEA),
+                        fontSize: 22,
+                        fontFamily: 'Jaldi',
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _lessonController,
-                    maxLines: 4,
-                    style: const TextStyle(
-                      color: Color(0xBFAEAEAEA),
-                      fontFamily: 'Jomolhari',
-                      fontSize: 18,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'What did I learn?',
-                      hintStyle: const TextStyle(
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _lessonController,
+                      maxLines: 4,
+                      style: const TextStyle(
                         color: Color(0xBFAEAEAEA),
                         fontFamily: 'Jomolhari',
                         fontSize: 18,
                       ),
-                      filled: true,
-                      fillColor: const Color(0xFF282828),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
+                      decoration: InputDecoration(
+                        hintText: 'What did I learn?',
+                        hintStyle: const TextStyle(
+                          color: Color(0xBFAEAEAEA),
+                          fontFamily: 'Jomolhari',
+                          fontSize: 18,
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF282828),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.all(16),
                       ),
-                      contentPadding: const EdgeInsets.all(16),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

@@ -46,6 +46,7 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
     });
     _fetchAndPrepareLessons();
   }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +156,7 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => ReflectScreen(
         date: _lessons[_currentLessonIndex].date,
+        isOpenedFromLessons: true, // This is the new flag we are passing
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1.0, 0.0);

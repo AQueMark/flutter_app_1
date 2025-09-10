@@ -88,7 +88,6 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // We rebuild the screen list here to pass the correct date
     final List<Widget> screenWidgets = [
       LessonsScreen(key: _lessonsScreenKey),
       ReflectScreen(date: _dateForReflectScreen),
@@ -96,6 +95,8 @@ class MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
+      // This is the fix. It stops the screen from resizing for the keyboard.
+      resizeToAvoidBottomInset: false,
       body: screenWidgets[_selectedIndex],
       bottomNavigationBar: BottomAppBar(
         color: const Color(0xFF1E1E1E).withOpacity(0.98),

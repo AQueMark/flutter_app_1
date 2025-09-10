@@ -211,16 +211,16 @@ class _ReflectScreenState extends State<ReflectScreen> {
                 controller: _incidentController,
                  maxLines: 8,
                 style: const TextStyle(
-                  color: Color(0xBFAEAEAE),
+                  color: Color(0xBFAEAEAEA),
                   fontFamily: 'Jomolhari',
-                  fontSize: 17,
+                  fontSize: 18,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Describe the event or feeling without judgment..',
                   hintStyle: const TextStyle(
-                    color: Color(0xBFAEAEAEA),
+                    color: Color(0xBFAEAEAE),
                     fontFamily: 'Jomolhari',
-                    fontSize: 17,
+                    fontSize: 18,
                   ),
                   filled: true,
                   fillColor: const Color(0xFF282828),
@@ -248,14 +248,14 @@ class _ReflectScreenState extends State<ReflectScreen> {
                 style: const TextStyle(
                   color: Color(0xBFAEAEAEA),
                   fontFamily: 'Jomolhari',
-                  fontSize: 17,
+                  fontSize: 18,
                 ),
                 decoration: InputDecoration(
                   hintText: 'What did I learn?',
                   hintStyle: const TextStyle(
-                    color: Color(0xBFAEAEAEA),
+                    color: Color(0xBFAEAEAE),
                     fontFamily: 'Jomolhari',
-                    fontSize: 17,
+                    fontSize: 18,
                   ),
                   filled: true,
                   fillColor: const Color(0xFF282828),

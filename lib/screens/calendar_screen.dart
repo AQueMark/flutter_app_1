@@ -69,82 +69,98 @@ class CalendarScreenState extends State<CalendarScreen> {
                   ),
               ),
               const SizedBox(height: 32),
-              TableCalendar(
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
-                focusedDay: _focusedDay,
-                calendarFormat: CalendarFormat.month,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDay = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
-                },
-                enabledDayPredicate: (date) {
-                  return date.isBefore(DateTime.now()) || isSameDay(date, DateTime.now());
-                },
-                headerStyle: HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: const TextStyle(
-                    color: Color(0xB7EAEAEA),
-                    fontSize: 24,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w400,
+              // THIS CONTAINER WRAPS THE CALENDAR TO ADD THE FINAL BORDER
+              Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Colors.grey.shade900, width: 0.5),
                   ),
-                  headerPadding: const EdgeInsets.only(top: 16.0, bottom: 24.0),
                 ),
-                daysOfWeekStyle: const DaysOfWeekStyle(
-                  weekdayStyle: TextStyle(color: Color(0xB7EAEAEA), fontSize: 18),
-                  weekendStyle: TextStyle(color: Color(0xB7EAEAEA), fontSize: 18),
-                ),
-                calendarStyle: const CalendarStyle(
-                  defaultTextStyle: TextStyle(color: Colors.white, fontSize: 18),
-                  weekendTextStyle: TextStyle(color: Colors.white, fontSize: 18),
-                  outsideDaysVisible: false,
-                ),
-                calendarBuilders: CalendarBuilders(
-                  disabledBuilder: (context, date, events) => Center(
-                    child: Text(
-                      '${date.day}',
-                      style: TextStyle(color: Colors.grey.shade800, fontSize: 18),
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2020, 1, 1),
+                  lastDay: DateTime.utc(2030, 12, 31),
+                  focusedDay: _focusedDay,
+                  calendarFormat: CalendarFormat.month,
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                  onDaySelected: (selectedDay, focusedDay) {
+                    setState(() {
+                      _selectedDay = selectedDay;
+                      _focusedDay = focusedDay;
+                    });
+                  },
+                  rowHeight: 60,
+                  daysOfWeekHeight: 40,
+                  enabledDayPredicate: (date) {
+                    return date.isBefore(DateTime.now()) || isSameDay(date, DateTime.now());
+                  },
+                  headerStyle: HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    titleTextStyle: const TextStyle(
+                      color: Color(0xB7EAEAEA),
+                      fontSize: 24,
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w400,
+                    ),
+                    headerPadding: const EdgeInsets.only(top: 16.0, bottom: 34.0),
+                  ),
+                  daysOfWeekStyle: DaysOfWeekStyle(
+                    weekdayStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19),
+                    weekendStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19),
+                    decoration: BoxDecoration(
+                      border: Border(bottom: BorderSide(color: Colors.grey.shade900, width: 0.5)),
                     ),
                   ),
-                  dowBuilder: (context, day) {
-                    final text = DateFormat.E().format(day);
-                    return Center(
+                  calendarStyle: CalendarStyle(
+                    defaultTextStyle: const TextStyle(color: Colors.white, fontSize: 19),
+                    weekendTextStyle: const TextStyle(color: Colors.white, fontSize: 19),
+                    outsideDaysVisible: false,
+                    rowDecoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: Colors.grey.shade900, width: 0.5)),
+                    ),
+                  ),
+                  calendarBuilders: CalendarBuilders(
+                    disabledBuilder: (context, date, events) => Center(
                       child: Text(
-                        text.substring(0, 1),
-                        style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 18),
+                        '${date.day}',
+                        style: TextStyle(color: Colors.grey.shade800, fontSize: 18),
                       ),
-                    );
-                  },
-                  defaultBuilder: (context, day, focusedDay) {
-                    if (_getLessonsForDay(day).isNotEmpty) {
-                      return Container(
-                        margin: const EdgeInsets.all(6.0),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
+                    ),
+                    dowBuilder: (context, day) {
+                      final text = DateFormat.E().format(day);
+                      return Center(
                         child: Text(
-                          '${day.day}',
-                          style: const TextStyle(color: Colors.white, fontSize: 18),
+                          text.substring(0, 1),
+                          style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19),
                         ),
                       );
-                    }
-                    return null;
-                  },
-                  selectedBuilder: (context, date, events) => Container(
-                    margin: const EdgeInsets.all(6.0),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade800,
-                      shape: BoxShape.circle,
+                    },
+                    defaultBuilder: (context, day, focusedDay) {
+                      if (_getLessonsForDay(day).isNotEmpty) {
+                        return Container(
+                          margin: const EdgeInsets.all(6.0),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Text(
+                            '${day.day}',
+                            style: const TextStyle(color: Colors.white, fontSize: 19),
+                          ),
+                        );
+                      }
+                      return null;
+                    },
+                    selectedBuilder: (context, date, events) => Container(
+                      margin: const EdgeInsets.all(6.0),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade800,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text('${date.day}', style: const TextStyle(color: Colors.white, fontSize: 18)),
                     ),
-                    child: Text('${date.day}', style: const TextStyle(color: Colors.white, fontSize: 18)),
                   ),
                 ),
               ),
@@ -155,7 +171,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
-                      // This is the corrected function name
                       mainScreenState?.navigateToReflectWithDate(_selectedDay);
                     },
                     style: ElevatedButton.styleFrom(

@@ -44,8 +44,8 @@ class _ReflectScreenState extends State<ReflectScreen> {
   @override
   void didUpdateWidget(covariant ReflectScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.date != oldWidget.date && widget.date != null) {
-      _currentDate = widget.date!;
+    if (widget.date != oldWidget.date) {
+      _currentDate = widget.date ?? DateTime.now();
       _loadLessonForDate(_currentDate);
     }
   }
@@ -97,8 +97,12 @@ class _ReflectScreenState extends State<ReflectScreen> {
     await DatabaseHelper.instance.upsert(lesson);
 
     if (mounted) {
-      final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
-      mainScreenState?.navigateToLessonsAndRefresh();
+      if (widget.isOpenedFromLessons) {
+        Navigator.of(context).pop();
+      } else {
+        final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
+        mainScreenState?.navigateToLessonsAndRefresh();
+      }
     }
   }
 
@@ -124,8 +128,12 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
     if (confirmDelete && mounted) {
       await DatabaseHelper.instance.delete(_currentDate);
-      final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
-      mainScreenState?.navigateToCalendarAndRefresh();
+      if (widget.isOpenedFromLessons) {
+        Navigator.of(context).pop();
+      } else {
+        final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
+        mainScreenState?.navigateToCalendarAndRefresh();
+      }
     }
   }
 
@@ -133,20 +141,22 @@ class _ReflectScreenState extends State<ReflectScreen> {
   Widget build(BuildContext context) {
     final String formattedDate = DateFormat('EEEE, \nd MMMM yyyy').format(_currentDate);
 
-    return GestureDetector(
-      onHorizontalDragEnd: (details) {
-        if (widget.isOpenedFromLessons && details.primaryVelocity! > 100) {
-          Navigator.of(context).pop();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFF121212),
-        body: SafeArea(
+    return Scaffold(
+      backgroundColor: const Color(0xFF121212),
+      body: SafeArea(
+        child: GestureDetector(
+          onHorizontalDragEnd: (details) {
+            if (widget.isOpenedFromLessons && details.primaryVelocity! > 100) {
+              Navigator.of(context).pop();
+            }
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: SingleChildScrollView(
+              // THIS IS THE FIX: Disable user scrolling
               physics: const NeverScrollableScrollPhysics(),
               child: SizedBox(
+                // We give the content a fixed height to avoid layout issues
                 height: MediaQuery.of(context).size.height,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

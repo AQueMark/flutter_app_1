@@ -47,7 +47,6 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
     _fetchAndPrepareLessons();
   }
   
-
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -103,7 +102,6 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
                                 style: TextStyle(color: Colors.white, fontSize: 18),
                               ),
                             )
-                          // THIS IS THE FIX: We wrap the PageView in a NotificationListener
                           : NotificationListener<ScrollNotification>(
                               onNotification: (notification) {
                                 if (notification is ScrollEndNotification && _lessons.isNotEmpty) {
@@ -115,7 +113,7 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
                                     });
                                   }
                                 }
-                                return true; // We've handled the notification
+                                return true;
                               },
                               child: PageView.builder(
                                 controller: _verticalController,
@@ -156,7 +154,7 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => ReflectScreen(
         date: _lessons[_currentLessonIndex].date,
-        isOpenedFromLessons: true, // This is the new flag we are passing
+        isOpenedFromLessons: true,
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1.0, 0.0);

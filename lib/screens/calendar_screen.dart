@@ -12,7 +12,11 @@ class CalendarScreen extends StatefulWidget {
   CalendarScreenState createState() => CalendarScreenState();
 }
 
-class CalendarScreenState extends State<CalendarScreen> {
+class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveClientMixin<CalendarScreen>{
+  
+  @override
+  bool get wantKeepAlive => true;
+
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
   List<Lesson> _allLessons = [];
@@ -46,6 +50,7 @@ class CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final lessonsForSelectedDay = _getLessonsForDay(_selectedDay);
     final bool hasEntry = lessonsForSelectedDay.isNotEmpty;
 
@@ -69,7 +74,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                   ),
               ),
               const SizedBox(height: 32),
-              // THIS CONTAINER WRAPS THE CALENDAR TO ADD THE FINAL BORDER
               Container(
                 decoration: BoxDecoration(
                   border: Border(
@@ -171,7 +175,10 @@ class CalendarScreenState extends State<CalendarScreen> {
                   child: ElevatedButton(
                     onPressed: () {
                       final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
-                      mainScreenState?.navigateToReflectWithDate(_selectedDay);
+                      final lesson = hasEntry ? lessonsForSelectedDay.first : null;
+                      mainScreenState?.navigateToReflectWithDate(
+                        _selectedDay,
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE0E0E0),

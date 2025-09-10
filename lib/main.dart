@@ -45,25 +45,22 @@ class MainScreenState extends State<MainScreen> {
   final GlobalKey<LessonsScreenState> _lessonsScreenKey = GlobalKey<LessonsScreenState>();
   final GlobalKey<CalendarScreenState> _calendarScreenKey = GlobalKey<CalendarScreenState>();
 
-  // This is the new function that ReflectScreen will call after saving
   void navigateToLessonsAndRefresh() {
     setState(() {
-      _selectedIndex = 0; // Switch to the Lessons tab
+      _selectedIndex = 0;
     });
     _lessonsScreenKey.currentState?.refreshLessons();
     _calendarScreenKey.currentState?.refreshCalendar();
   }
 
-  // This is the new function that ReflectScreen will call after deleting
   void navigateToCalendarAndRefresh() {
     setState(() {
-      _selectedIndex = 2; // Switch to the Calendar tab
+      _selectedIndex = 2;
     });
     _lessonsScreenKey.currentState?.refreshLessons();
     _calendarScreenKey.currentState?.refreshCalendar();
   }
   
-  // This function is for the Calendar screen to open the Reflect screen
   void navigateToReflectWithDate(DateTime date) {
     setState(() {
       _dateForReflectScreen = date;
@@ -72,12 +69,10 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _onItemTapped(int index) {
-    // When leaving the Reflect screen, refresh the others
     if (_selectedIndex == 1 && index != 1) {
        _lessonsScreenKey.currentState?.refreshLessons();
        _calendarScreenKey.currentState?.refreshCalendar();
     }
-    // When tapping the '+' tab, clear any date from the calendar
     if (index == 1) {
       _dateForReflectScreen = null;
     }
@@ -95,7 +90,6 @@ class MainScreenState extends State<MainScreen> {
     ];
 
     return Scaffold(
-      // This is the fix. It stops the screen from resizing for the keyboard.
       resizeToAvoidBottomInset: false,
       body: screenWidgets[_selectedIndex],
       bottomNavigationBar: BottomAppBar(

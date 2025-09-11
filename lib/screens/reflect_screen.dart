@@ -30,7 +30,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
   String _initialIncidentText = '';
   String _initialLessonText = '';
 
-  // --- ADDED: A state variable for the save button animation ---
   bool _isSaving = false;
 
   @override
@@ -45,12 +44,9 @@ class _ReflectScreenState extends State<ReflectScreen> {
     _lessonController.addListener(_updateSaveButtonState);
   }
 
-  // --- ADDED: This method runs when the widget gets new data from MainScreen ---
   @override
   void didUpdateWidget(ReflectScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If the master list of lessons has changed, it means a save or delete happened.
-    // We need to refresh this screen's state to match.
     if (widget.allLessons != oldWidget.allLessons) {
       setState(() {
         _findLessonForDate();
@@ -97,7 +93,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
   }
 
   Future<void> _saveLesson() async {
-    // --- MODIFIED: Added logic for the save animation ---
     setState(() {
       _isSaving = true;
     });
@@ -109,7 +104,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
     );
     await DatabaseHelper.instance.upsert(lesson);
     
-    // This tells MainScreen to refresh, which will then trigger didUpdateWidget here.
     widget.onDataChanged(); 
 
     if (mounted) {
@@ -138,7 +132,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
     if (confirmDelete) {
       await DatabaseHelper.instance.delete(widget.date);
-      // This tells MainScreen to refresh, which will then trigger didUpdateWidget here.
       widget.onDataChanged(); 
       if (widget.isOpenedFromLessons && mounted) {
         Navigator.of(context).pop();
@@ -168,27 +161,26 @@ class _ReflectScreenState extends State<ReflectScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 44),
+                    // --- UI CHANGE: "REFLECT" title is now by itself ---
+                    const Text('REFLECT', style: TextStyle(color: Color(0xFCEAEAEA), fontSize: 32, fontFamily: 'K2D', fontWeight: FontWeight.w400, letterSpacing: 2.40)),
+                    const SizedBox(height: 38),
+                    // --- UI CHANGE: New Row to hold the date and the buttons ---
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Text('REFLECT', style: TextStyle(color: Color(0xFCEAEAEA), fontSize: 32, fontFamily: 'K2D', fontWeight: FontWeight.w400, letterSpacing: 2.40)),
+                        Text(formattedDate, style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w400)),
                         Row(
                           children: [
-                            if (_existingLesson != null)
-                              IconButton(
-                                icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
-                                onPressed: _deleteLesson,
-                              ),
+                            // --- UI CHANGE: Save button is now first ---
                             OutlinedButton(
                               onPressed: _isSaveButtonEnabled ? _saveLesson : null,
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.white,
                                 backgroundColor: _isSaveButtonEnabled ? Colors.white : Colors.transparent,
-                                side: BorderSide(width: 1.5, color: _isSaveButtonEnabled ? Colors.white : Colors.grey.shade800),
+                                side: BorderSide(width: 2.5, color: _isSaveButtonEnabled ? Colors.white : Colors.grey.shade800),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                               ),
-                              // --- MODIFIED: The button's child now changes during save ---
                               child: _isSaving
                                 ? const SizedBox(
                                     height: 20,
@@ -200,42 +192,46 @@ class _ReflectScreenState extends State<ReflectScreen> {
                                   )
                                 : Text('Save', style: TextStyle(color: _isSaveButtonEnabled ? Colors.black : Colors.grey[600], fontFamily: 'Inter', fontWeight: FontWeight.bold)),
                             ),
+                            // --- UI CHANGE: Delete button is now second ---
+                            if (_existingLesson != null)
+                              IconButton(
+                                icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
+                                onPressed: _deleteLesson,
+                              ),
                           ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    Text(formattedDate, style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w400)),
-                    const SizedBox(height: 48),
-                    const Text('THE INCIDENT', style: TextStyle(color: Color(0xEDEAEAEA), fontSize: 22, fontFamily: 'Jaldi', fontWeight: FontWeight.w400)),
+                    const SizedBox(height: 42),
+                    const Text('THE INCIDENT', style: TextStyle(color: Color(0xEDEAEAEA), fontSize: 19, fontFamily: 'K2D', fontWeight: FontWeight.w400)),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _incidentController,
                       maxLines: 8,
-                      style: const TextStyle(color: Color(0xBFAEAEAEA), fontFamily: 'Jomolhari', fontSize: 18),
+                      style: const TextStyle(color: Color(0xBFAEAEAEA), fontFamily: 'K2D', fontSize: 18),
                       decoration: InputDecoration(
                         hintText: 'Describe the event or feeling without judgment..',
-                        hintStyle: const TextStyle(color: Color(0xBFAEAEAEA), fontFamily: 'Jomolhari', fontSize: 18),
+                        hintStyle: const TextStyle(color: Color(0xB7EAEAEA), fontFamily: 'K2D', fontSize: 18),
                         filled: true,
                         fillColor: const Color(0xFF282828),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.all(16),
+                        contentPadding: const EdgeInsets.all(20),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text('THE LESSON', style: TextStyle(color: Color(0xEDEAEAEA), fontSize: 22, fontFamily: 'Jaldi', fontWeight: FontWeight.w400)),
+                    const Text('THE LESSON', style: TextStyle(color: Color(0xEDEAEAEA), fontSize: 19, fontFamily: 'K2D', fontWeight: FontWeight.w400)),
                     const SizedBox(height: 14),
                     TextField(
                       controller: _lessonController,
                       maxLines: 4,
-                      style: const TextStyle(color: Color(0xBFAEAEAEA), fontFamily: 'Jomolhari', fontSize: 18),
+                      style: const TextStyle(color: Color(0xBFAEAEAEA), fontFamily: 'K2D', fontSize: 18),
                       decoration: InputDecoration(
                         hintText: 'What did I learn?',
-                        hintStyle: const TextStyle(color: Color(0xBFAEAEAEA), fontFamily: 'Jomolhari', fontSize: 18),
+                        hintStyle: const TextStyle(color: Color(0xB7EAEAEA), fontFamily: 'K2D', fontSize: 18),
                         filled: true,
                         fillColor: const Color(0xFF282828),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.all(16),
+                        contentPadding: const EdgeInsets.all(20),
                       ),
                     ),
                   ],

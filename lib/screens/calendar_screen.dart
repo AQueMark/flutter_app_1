@@ -59,7 +59,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                   letterSpacing: 2.40,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 36),
               Container(
                 decoration: BoxDecoration(
                   border: Border(
@@ -79,7 +79,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                     });
                   },
                   rowHeight: 60,
-                  daysOfWeekHeight: 40,
+                  daysOfWeekHeight: 60,
                   enabledDayPredicate: (date) {
                     return !date.isAfter(DateTime.now());
                   },
@@ -87,23 +87,23 @@ class CalendarScreenState extends State<CalendarScreen> {
                     formatButtonVisible: false,
                     titleCentered: true,
                     titleTextStyle: const TextStyle(
-                      color: Color(0xB7EAEAEA),
-                      fontSize: 24,
-                      fontFamily: 'Inter',
+                      color: Color.fromARGB(255, 231, 229, 229),
+                      fontSize: 22,
+                      fontFamily: 'K2D',
                       fontWeight: FontWeight.w400,
                     ),
                     headerPadding: const EdgeInsets.only(top: 16.0, bottom: 34.0),
                   ),
                   daysOfWeekStyle: DaysOfWeekStyle(
-                    weekdayStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19),
-                    weekendStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19),
+                    weekdayStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19,fontFamily: 'K2D'),
+                    weekendStyle: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19,fontFamily: 'K2D'),
                     decoration: BoxDecoration(
                       border: Border(bottom: BorderSide(color: Colors.grey.shade900, width: 0.5)),
                     ),
                   ),
                   calendarStyle: CalendarStyle(
-                    defaultTextStyle: const TextStyle(color: Colors.white, fontSize: 19),
-                    weekendTextStyle: const TextStyle(color: Colors.white, fontSize: 19),
+                    defaultTextStyle: const TextStyle(color: Colors.white, fontSize: 19,fontFamily: 'K2D'),
+                    weekendTextStyle: const TextStyle(color: Colors.white, fontSize: 19,fontFamily: 'K2D'),
                     outsideDaysVisible: false,
                     rowDecoration: BoxDecoration(
                       border: Border(top: BorderSide(color: Colors.grey.shade900, width: 0.5)),
@@ -113,7 +113,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                     disabledBuilder: (context, date, events) => Center(
                       child: Text(
                         '${date.day}',
-                        style: TextStyle(color: Colors.grey.shade800, fontSize: 18),
+                        style: TextStyle(color: Colors.grey.shade800, fontSize: 18, fontFamily: 'K2D'),
                       ),
                     ),
                     dowBuilder: (context, day) {
@@ -121,7 +121,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                       return Center(
                         child: Text(
                           text.substring(0, 1),
-                          style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19),
+                          style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 19,fontFamily: 'K2D'),
                         ),
                       );
                     },
@@ -136,7 +136,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                           ),
                           child: Text(
                             '${day.day}',
-                            style: const TextStyle(color: Colors.white, fontSize: 19),
+                            style: const TextStyle(color: Colors.white, fontSize: 19,fontFamily: 'K2D'),
                           ),
                         );
                       }
@@ -149,7 +149,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                         color: Colors.grey.shade800,
                         shape: BoxShape.circle,
                       ),
-                      child: Text('${date.day}', style: const TextStyle(color: Colors.white, fontSize: 18)),
+                      child: Text('${date.day}', style: const TextStyle(color: Colors.white, fontSize: 18,fontFamily: 'K2D')),
                     ),
                   ),
                 ),
@@ -157,7 +157,7 @@ class CalendarScreenState extends State<CalendarScreen> {
               const Spacer(),
               Center(
                 child: SizedBox(
-                  width: 175,
+                  width: 100,
                   child: ElevatedButton(
                     onPressed: () {
                       // --- CHANGE: Use the callback to navigate ---
@@ -169,20 +169,20 @@ class CalendarScreenState extends State<CalendarScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
                     ),
                     child: Text(
                       hasEntry ? 'VIEW' : 'ADD',
                       style: const TextStyle(
                         fontFamily: 'Inter',
                         fontWeight: FontWeight.bold,
-                        fontSize: 21,
+                        fontSize: 18,
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 62),
+              const SizedBox(height: 75),
             ],
           ),
         ),

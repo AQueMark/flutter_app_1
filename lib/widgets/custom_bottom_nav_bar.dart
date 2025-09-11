@@ -14,13 +14,12 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      color: const Color(0xFF1E1E1E).withOpacity(0.98),
+      color: const Color.fromARGB(255, 20, 20, 20).withOpacity(0.98),
       height: 80,
       elevation: 0,
       padding: EdgeInsets.zero,
-      // This shape creates the "notch" for the floating action button
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8.0,
+      
+      shape: null,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: <Widget>[
@@ -70,7 +69,7 @@ class ReflectFloatingActionButton extends StatelessWidget {
           width: 76,
           height: 76,
           decoration: const BoxDecoration(
-            color: Color(0xFF282828),
+            color: Color.fromARGB(255, 30, 30, 30),
             shape: BoxShape.circle,
           ),
           child: Center(

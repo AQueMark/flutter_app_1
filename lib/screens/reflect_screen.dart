@@ -30,6 +30,9 @@ class _ReflectScreenState extends State<ReflectScreen> {
   String _initialIncidentText = '';
   String _initialLessonText = '';
 
+  // --- ADDED: A state variable for the save button animation ---
+  bool _isSaving = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,20 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
     _incidentController.addListener(_updateSaveButtonState);
     _lessonController.addListener(_updateSaveButtonState);
+  }
+
+  // --- ADDED: This method runs when the widget gets new data from MainScreen ---
+  @override
+  void didUpdateWidget(ReflectScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the master list of lessons has changed, it means a save or delete happened.
+    // We need to refresh this screen's state to match.
+    if (widget.allLessons != oldWidget.allLessons) {
+      setState(() {
+        _findLessonForDate();
+        _updateSaveButtonState();
+      });
+    }
   }
   
   void _findLessonForDate() {
@@ -80,15 +97,28 @@ class _ReflectScreenState extends State<ReflectScreen> {
   }
 
   Future<void> _saveLesson() async {
+    // --- MODIFIED: Added logic for the save animation ---
+    setState(() {
+      _isSaving = true;
+    });
+
     final lesson = Lesson(
       incident: _incidentController.text,
       lesson: _lessonController.text,
       date: widget.date,
     );
     await DatabaseHelper.instance.upsert(lesson);
-    widget.onDataChanged();
-    if (widget.isOpenedFromLessons && mounted) {
-      Navigator.of(context).pop();
+    
+    // This tells MainScreen to refresh, which will then trigger didUpdateWidget here.
+    widget.onDataChanged(); 
+
+    if (mounted) {
+      setState(() {
+        _isSaving = false;
+      });
+      if (widget.isOpenedFromLessons) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
@@ -108,7 +138,8 @@ class _ReflectScreenState extends State<ReflectScreen> {
 
     if (confirmDelete) {
       await DatabaseHelper.instance.delete(widget.date);
-      widget.onDataChanged();
+      // This tells MainScreen to refresh, which will then trigger didUpdateWidget here.
+      widget.onDataChanged(); 
       if (widget.isOpenedFromLessons && mounted) {
         Navigator.of(context).pop();
       }
@@ -122,7 +153,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
       backgroundColor: const Color(0xFF121212),
       body: SafeArea(
         child: GestureDetector(
-          // --- YOUR SWIPE-RIGHT GESTURE IS PRESERVED ---
           onHorizontalDragEnd: (details) {
             if (widget.isOpenedFromLessons && details.primaryVelocity! > 100) {
               Navigator.of(context).pop();
@@ -145,7 +175,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
                         const Text('REFLECT', style: TextStyle(color: Color(0xFCEAEAEA), fontSize: 32, fontFamily: 'K2D', fontWeight: FontWeight.w400, letterSpacing: 2.40)),
                         Row(
                           children: [
-                            // --- YOUR DELETE BUTTON IS RESTORED ---
                             if (_existingLesson != null)
                               IconButton(
                                 icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
@@ -159,7 +188,17 @@ class _ReflectScreenState extends State<ReflectScreen> {
                                 side: BorderSide(width: 1.5, color: _isSaveButtonEnabled ? Colors.white : Colors.grey.shade800),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
                               ),
-                              child: Text('Save', style: TextStyle(color: _isSaveButtonEnabled ? Colors.black : Colors.grey[600], fontFamily: 'Inter', fontWeight: FontWeight.bold)),
+                              // --- MODIFIED: The button's child now changes during save ---
+                              child: _isSaving
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                    ),
+                                  )
+                                : Text('Save', style: TextStyle(color: _isSaveButtonEnabled ? Colors.black : Colors.grey[600], fontFamily: 'Inter', fontWeight: FontWeight.bold)),
                             ),
                           ],
                         ),

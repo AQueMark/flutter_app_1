@@ -2,47 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_app_1/utils/database_helper.dart';
-import 'package:flutter_app_1/screens/reflect_screen.dart';
-import 'package:flutter_app_1/main.dart';
 
 class CalendarScreen extends StatefulWidget {
-  const CalendarScreen({super.key});
+  // --- CHANGE: Receive the list of all lessons and the navigation callback ---
+  final List<Lesson> allLessons;
+  final Function(DateTime) onNavigateToReflect;
+
+  const CalendarScreen({
+    super.key,
+    required this.allLessons,
+    required this.onNavigateToReflect,
+  });
 
   @override
   CalendarScreenState createState() => CalendarScreenState();
 }
 
-class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveClientMixin<CalendarScreen>{
-  
-  @override
-  bool get wantKeepAlive => true;
-
+class CalendarScreenState extends State<CalendarScreen> {
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
-  List<Lesson> _allLessons = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchLessons();
-  }
-
-  void refreshCalendar() {
-    _fetchLessons();
-  }
-
-  Future<void> _fetchLessons() async {
-    final lessons = await DatabaseHelper.instance.getAllLessons();
-    if (mounted) {
-      setState(() {
-        _allLessons = lessons;
-      });
-    }
-  }
+  // --- REMOVED: No longer needs its own Future or refresh logic ---
 
   List<Lesson> _getLessonsForDay(DateTime day) {
     final dayOnly = DateTime(day.year, day.month, day.day);
-    return _allLessons.where((lesson) {
+    // --- CHANGE: Use the lesson list passed into the widget ---
+    return widget.allLessons.where((lesson) {
       final lessonDayOnly = DateTime(lesson.date.year, lesson.date.month, lesson.date.day);
       return isSameDay(lessonDayOnly, dayOnly);
     }).toList();
@@ -50,7 +35,8 @@ class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveC
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    // --- REMOVED: FutureBuilder is no longer needed ---
+    
     final lessonsForSelectedDay = _getLessonsForDay(_selectedDay);
     final bool hasEntry = lessonsForSelectedDay.isNotEmpty;
 
@@ -66,12 +52,12 @@ class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveC
               const Text(
                 'REMEMBER',
                 style: TextStyle(
-                    color: Color(0xFCEAEAEA),
-                    fontSize: 32,
-                    fontFamily: 'K2D',
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 2.40,
-                  ),
+                  color: Color(0xFCEAEAEA),
+                  fontSize: 32,
+                  fontFamily: 'K2D',
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 2.40,
+                ),
               ),
               const SizedBox(height: 32),
               Container(
@@ -82,7 +68,7 @@ class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveC
                 ),
                 child: TableCalendar(
                   firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
+                  lastDay: DateTime.now().add(const Duration(days: 1)), // Only allow up to today
                   focusedDay: _focusedDay,
                   calendarFormat: CalendarFormat.month,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
@@ -95,7 +81,7 @@ class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveC
                   rowHeight: 60,
                   daysOfWeekHeight: 40,
                   enabledDayPredicate: (date) {
-                    return date.isBefore(DateTime.now()) || isSameDay(date, DateTime.now());
+                    return !date.isAfter(DateTime.now());
                   },
                   headerStyle: HeaderStyle(
                     formatButtonVisible: false,
@@ -174,11 +160,8 @@ class CalendarScreenState extends State<CalendarScreen> with AutomaticKeepAliveC
                   width: 175,
                   child: ElevatedButton(
                     onPressed: () {
-                      final mainScreenState = context.findAncestorStateOfType<MainScreenState>();
-                      final lesson = hasEntry ? lessonsForSelectedDay.first : null;
-                      mainScreenState?.navigateToReflectWithDate(
-                        _selectedDay,
-                      );
+                      // --- CHANGE: Use the callback to navigate ---
+                      widget.onNavigateToReflect(_selectedDay);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE0E0E0),

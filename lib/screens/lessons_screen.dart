@@ -3,7 +3,15 @@ import 'package:flutter_app_1/utils/database_helper.dart';
 import 'package:flutter_app_1/screens/reflect_screen.dart';
 
 class LessonsScreen extends StatefulWidget {
-  const LessonsScreen({super.key});
+  // --- CHANGE: Receive master list of lessons and a refresh callback ---
+  final List<Lesson> allLessons;
+  final VoidCallback onDataChanged;
+
+  const LessonsScreen({
+    super.key,
+    required this.allLessons,
+    required this.onDataChanged,
+  });
 
   @override
   LessonsScreenState createState() => LessonsScreenState();
@@ -12,8 +20,7 @@ class LessonsScreen extends StatefulWidget {
 class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveClientMixin<LessonsScreen> {
   final PageController _verticalController = PageController(initialPage: 5000);
   List<Lesson> _lessons = [];
-  bool _isLoading = true;
-  int _currentLessonIndex = 0;
+  int _currentLessonIndexInPage = 0; // Renamed to avoid confusion
 
   @override
   bool get wantKeepAlive => true;
@@ -21,7 +28,19 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
   @override
   void initState() {
     super.initState();
-    _fetchAndPrepareLessons();
+    // --- CHANGE: Use the data passed from MainScreen instead of fetching ---
+    _lessons = widget.allLessons.reversed.toList();
+  }
+
+  @override
+  void didUpdateWidget(LessonsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // --- CHANGE: If the master list changes, update the local reversed list ---
+    if (widget.allLessons != oldWidget.allLessons) {
+      setState(() {
+        _lessons = widget.allLessons.reversed.toList();
+      });
+    }
   }
 
   @override
@@ -29,28 +48,12 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
     _verticalController.dispose();
     super.dispose();
   }
-
-  Future<void> _fetchAndPrepareLessons() async {
-    final fetchedLessons = await DatabaseHelper.instance.getAllLessons();
-    if (mounted) {
-      setState(() {
-        _lessons = fetchedLessons.reversed.toList();
-        _isLoading = false;
-      });
-    }
-  }
-
-  void refreshLessons() {
-    setState(() {
-      _isLoading = true;
-    });
-    _fetchAndPrepareLessons();
-  }
   
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
+    // --- YOUR ORIGINAL UI AND GESTURES ARE PRESERVED HERE ---
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! < -100 && _lessons.isNotEmpty) {
@@ -92,55 +95,53 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
                   ),
                 ),
                 Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _lessons.isEmpty
-                          ? const Center(
-                              child: Text(
-                                'No lessons saved yet.\nTap the + button to add one.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.white, fontSize: 18),
-                              ),
-                            )
-                          : NotificationListener<ScrollNotification>(
-                              onNotification: (notification) {
-                                if (notification is ScrollEndNotification && _lessons.isNotEmpty) {
-                                  final newIndex = _verticalController.page?.round() ?? 0;
-                                  final loopedIndex = newIndex % _lessons.length;
-                                  if (loopedIndex != _currentLessonIndex) {
-                                    setState(() {
-                                      _currentLessonIndex = loopedIndex;
-                                    });
-                                  }
-                                }
-                                return true;
-                              },
-                              child: PageView.builder(
-                                controller: _verticalController,
-                                scrollDirection: Axis.vertical,
-                                itemBuilder: (context, index) {
-                                  if (_lessons.isEmpty) return Container();
-                                  final lesson = _lessons[index % _lessons.length];
-                                  return Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                      child: Text(
-                                        lesson.lesson,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 36,
-                                            fontFamily: 'Jaldi',
-                                            fontWeight: FontWeight.w600,
-                                            shadows: [
-                                              Shadow(blurRadius: 10.0, color: Colors.black),
-                                            ]),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
+                  child: _lessons.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No lessons saved yet.\nTap the + button to add one.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                        )
+                      : NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is ScrollEndNotification && _lessons.isNotEmpty) {
+                              final newIndex = _verticalController.page?.round() ?? 0;
+                              final loopedIndex = newIndex % _lessons.length;
+                              if (loopedIndex != _currentLessonIndexInPage) {
+                                setState(() {
+                                  _currentLessonIndexInPage = loopedIndex;
+                                });
+                              }
+                            }
+                            return true;
+                          },
+                          child: PageView.builder(
+                            controller: _verticalController,
+                            scrollDirection: Axis.vertical,
+                            itemBuilder: (context, index) {
+                              if (_lessons.isEmpty) return Container();
+                              final lesson = _lessons[index % _lessons.length];
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                                  child: Text(
+                                    lesson.lesson,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 36,
+                                        fontFamily: 'Jaldi',
+                                        fontWeight: FontWeight.w600,
+                                        shadows: [
+                                          Shadow(blurRadius: 10.0, color: Colors.black),
+                                        ]),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -153,7 +154,10 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
   Route _createSlideRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => ReflectScreen(
-        date: _lessons[_currentLessonIndex].date,
+        // --- CHANGE: Pass all necessary data for an instant load ---
+        date: _lessons[_currentLessonIndexInPage].date,
+        allLessons: widget.allLessons,
+        onDataChanged: widget.onDataChanged,
         isOpenedFromLessons: true,
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

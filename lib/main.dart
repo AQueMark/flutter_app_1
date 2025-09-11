@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_app_1/screens/reflect_screen.dart';
 import 'package:flutter_app_1/screens/calendar_screen.dart';
 import 'package:flutter_app_1/screens/lessons_screen.dart';
+import 'package:flutter_app_1/screens/reflect_screen.dart';
+import 'package:flutter_app_1/utils/database_helper.dart';
+import 'package:flutter_app_1/widgets/custom_bottom_nav_bar.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
+void main() {
   runApp(const MyApp());
 }
 
@@ -20,13 +15,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+      title: 'Flutter App',
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF121212),
         fontFamily: 'Inter',
       ),
       home: const MainScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -35,30 +31,36 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => MainScreenState();
+  MainScreenState createState() => MainScreenState();
 }
 
 class MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1; // Start on Reflect screen
   DateTime? _dateForReflectScreen;
 
-  final GlobalKey<LessonsScreenState> _lessonsScreenKey = GlobalKey<LessonsScreenState>();
-  final GlobalKey<CalendarScreenState> _calendarScreenKey = GlobalKey<CalendarScreenState>();
+  late Future<List<Lesson>> _allLessonsFuture;
+  List<Lesson> _allLessons = [];
 
-  void navigateToLessonsAndRefresh() {
-    setState(() {
-      _selectedIndex = 0;
-    });
-    _lessonsScreenKey.currentState?.refreshLessons();
-    _calendarScreenKey.currentState?.refreshCalendar();
+  @override
+  void initState() {
+    super.initState();
+    _allLessonsFuture = _fetchAndCacheLessons();
   }
 
-  void navigateToCalendarAndRefresh() {
+  Future<List<Lesson>> _fetchAndCacheLessons() async {
+    final lessons = await DatabaseHelper.instance.getAllLessons();
+    if (mounted) {
+      setState(() {
+        _allLessons = lessons;
+      });
+    }
+    return lessons;
+  }
+  
+  void refreshAllData() {
     setState(() {
-      _selectedIndex = 2;
+      _allLessonsFuture = _fetchAndCacheLessons();
     });
-    _lessonsScreenKey.currentState?.refreshLessons();
-    _calendarScreenKey.currentState?.refreshCalendar();
   }
   
   void navigateToReflectWithDate(DateTime date) {
@@ -69,12 +71,8 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (_selectedIndex == 1 && index != 1) {
-       _lessonsScreenKey.currentState?.refreshLessons();
-       _calendarScreenKey.currentState?.refreshCalendar();
-    }
     if (index == 1) {
-      _dateForReflectScreen = null;
+      _dateForReflectScreen = DateTime.now();
     }
     setState(() {
       _selectedIndex = index;
@@ -83,64 +81,45 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> screenWidgets = [
-      LessonsScreen(key: _lessonsScreenKey),
-      ReflectScreen(date: _dateForReflectScreen),
-      CalendarScreen(key: _calendarScreenKey),
-    ];
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      body: screenWidgets[_selectedIndex],
-      bottomNavigationBar: BottomAppBar(
-        color: const Color(0xFF1E1E1E).withOpacity(0.98),
-        height: 80,
-        elevation: 0,
-        padding: EdgeInsets.zero,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            IconButton(
-              onPressed: () => _onItemTapped(0),
-              icon: SvgPicture.asset(
-                _selectedIndex == 0 ? 'assets/icons/book_icon_white.svg' : 'assets/icons/book_icon_grey.svg',
-                width: 32,
-                height: 32,
-              ),
+      body: FutureBuilder<List<Lesson>>(
+        future: _allLessonsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting && _allLessons.isEmpty) {
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
+          
+          final screenWidgets = [
+            LessonsScreen(allLessons: _allLessons, onDataChanged: refreshAllData),
+            ReflectScreen(
+              key: ValueKey(_dateForReflectScreen),
+              date: _dateForReflectScreen ?? DateTime.now(),
+              allLessons: _allLessons,
+              onDataChanged: refreshAllData,
+              isOpenedFromLessons: false,
             ),
-            const SizedBox(width: 60),
-            IconButton(
-              onPressed: () => _onItemTapped(2),
-              icon: SvgPicture.asset(
-                _selectedIndex == 2 ? 'assets/icons/calendar_icon_white.svg' : 'assets/icons/calendar_icon_grey.svg',
-                width: 32,
-                height: 32,
-              ),
+            CalendarScreen(
+              allLessons: _allLessons,
+              onNavigateToReflect: navigateToReflectWithDate,
             ),
-          ],
-        ),
+          ];
+
+          return screenWidgets[_selectedIndex];
+        },
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemSelected: _onItemTapped,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Transform.translate(
-        offset: const Offset(0, 40),
-        child: GestureDetector(
-          onTap: () => _onItemTapped(1),
-          child: Container(
-            width: 76,
-            height: 76,
-            decoration: const BoxDecoration(
-              color: Color(0xFF282828),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: SvgPicture.asset(
-                _selectedIndex == 1 ? 'assets/icons/add_icon_white.svg' : 'assets/icons/add_icon_grey.svg',
-                width: 43,
-                height: 43,
-              ),
-            ),
-          ),
-        ),
+      floatingActionButton: ReflectFloatingActionButton(
+        selectedIndex: _selectedIndex,
+        onPressed: () => _onItemTapped(1),
       ),
     );
   }

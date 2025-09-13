@@ -1,16 +1,16 @@
-// In lib/services/auth_service.dart
-
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
-  // Create an instance of Firebase Auth
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // --- AUTH STATE CHANGES STREAM ---
-  // This stream will notify the app whenever the user's login state changes (logged in or out).
+  // Stream to notify the app of authentication state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  // --- SIGN UP WITH EMAIL & PASSWORD ---
+  // Get current user
+  User? get currentUser => _auth.currentUser;
+
+  // Sign Up with Email & Password
   Future<User?> signUpWithEmailAndPassword(String email, String password) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -19,13 +19,12 @@ class AuthService {
       );
       return result.user;
     } on FirebaseAuthException catch (e) {
-      // We can handle specific errors here later (e.g., email-already-in-use)
       print(e.toString());
       return null;
     }
   }
 
-  // --- SIGN IN WITH EMAIL & PASSWORD ---
+  // Sign In with Email & Password
   Future<User?> signInWithEmailAndPassword(String email, String password) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
@@ -34,25 +33,32 @@ class AuthService {
       );
       return result.user;
     } on FirebaseAuthException catch (e) {
-      // Handle errors like wrong-password, user-not-found
       print(e.toString());
       return null;
     }
   }
-  Future<void> sendEmailVerification() async {
+
+  // Sign In with Google
+  Future<User?> signInWithGoogle() async {
     try {
-      // Get the current user
-      final user = _auth.currentUser;
-      if (user != null && !user.emailVerified) {
-        // Send the verification email
-        await user.sendEmailVerification();
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        return null; // User canceled the sign-in
       }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      UserCredential userCredential = await _auth.signInWithCredential(credential);
+      return userCredential.user;
     } on FirebaseAuthException catch (e) {
       print(e.toString());
+      return null;
     }
   }
-
-  // --- PASSWORD RESET ---
+  
+  // Send Password Reset Email
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       return await _auth.sendPasswordResetEmail(email: email);
@@ -61,8 +67,21 @@ class AuthService {
     }
   }
 
-  // --- SIGN OUT ---
+  // Send Email Verification
+  Future<void> sendEmailVerification() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+      }
+    } on FirebaseAuthException catch (e) {
+      print(e.toString());
+    }
+  }
+
+  // Sign Out
   Future<void> signOut() async {
+    await GoogleSignIn().signOut();
     await _auth.signOut();
   }
 }

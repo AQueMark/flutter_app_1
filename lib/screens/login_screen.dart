@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app_1/screens/forgot_password_screen.dart';
 import 'package:flutter_app_1/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
-  // --- ADDED: Callback to toggle to the sign-up page ---
   final VoidCallback onTap;
 
   const LoginScreen({
@@ -17,6 +17,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
   
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -52,7 +53,20 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Sign in failed. Please check your credentials.')),
       );
     }
-    // If sign in is successful, the AuthGate will automatically navigate to MainScreen.
+  }
+  
+  Future<void> _signInWithGoogle() async {
+    setState(() {
+      _isGoogleLoading = true;
+    });
+
+    await _authService.signInWithGoogle();
+
+    if (mounted) {
+      setState(() {
+        _isGoogleLoading = false;
+      });
+    }
   }
 
   @override
@@ -93,19 +107,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Password',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 19,
+                        fontSize: 16,
                         fontFamily: 'K2D',
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        // TODO: Navigate to Forgot Password screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ForgotPasswordScreen(),
+                          ),
+                        );
                       },
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: Color(0xFF4A55A8),
-                          fontSize: 16,
+                          color: const Color.fromARGB(255, 22, 97, 171),
+                          fontSize: 14,
                           fontFamily: 'K2D',
                         ),
                       ),
@@ -139,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             _keepMeSignedIn = value ?? false;
                           });
                         },
-                        activeColor: const Color.fromARGB(255, 46, 57, 138),
+                        activeColor: const Color.fromARGB(255, 22, 97, 171),
                         checkColor: Colors.black,
                       ),
                     ),
@@ -148,23 +167,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Keep me signed in',
                       style: TextStyle(
                         color: Colors.grey,
-                        fontSize: 16,
+                        fontSize: 15,
                         fontFamily: 'K2D',
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
 
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _signIn,
+                    onPressed: _isLoading || _isGoogleLoading ? null : _signIn,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color.fromARGB(255, 22, 97, 171),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     child: _isLoading
@@ -176,17 +195,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const Text(
                             'Sign in',
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 16,
                               color: Colors.white,
                             ),
                           ),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 27),
 
                 const Row(
                   children: [
-                    Expanded(child: Divider(color: Colors.grey)),
+                    Expanded(child: Divider(color: Color.fromARGB(126, 158, 158, 158) )),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: Text(
@@ -198,37 +217,39 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    Expanded(child: Divider(color: Colors.grey)),
+                    Expanded(child: Divider(color: Color.fromARGB(126, 158, 158, 158))),
                   ],
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 27),
 
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Implement Google Sign In Logic
-                    },
-                    icon: Image.asset('assets/icons/google_logo.png', height: 20),
-                    label: const Text(
-                      'Sign in with Google',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                      ),
-                    ),
+                    onPressed: _isLoading || _isGoogleLoading ? null : _signInWithGoogle,
+                    icon: _isGoogleLoading
+                        ? Container()
+                        : Image.asset('assets/icons/google_logo.png', height: 20),
+                    label: _isGoogleLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text(
+                            'Sign in with Google',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Colors.grey),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 40),
                 
-                // --- MODIFIED: Link to Create Account Page now uses the onTap callback ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -237,16 +258,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         color: Colors.grey,
                         fontFamily: 'K2D',
+                        fontSize: 16,
                       ),
                     ),
                     GestureDetector(
-                      onTap: widget.onTap, // Use the callback here
+                      onTap: widget.onTap,
                       child: const Text(
                         'Create an Account',
                         style: TextStyle(
-                          color: Color(0xFF4A55A8),
+                          color: const Color.fromARGB(255, 22, 97, 171),
                           fontWeight: FontWeight.bold,
                           fontFamily: 'K2D',
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -277,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
             label,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 18,
+              fontSize: 16,
               fontFamily: 'K2D',
             ),
           ),
@@ -290,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: const TextStyle(color: Colors.white, fontFamily: 'K2D'),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.grey, fontFamily: 'K2D'),
+            hintStyle: const TextStyle(color: Color.fromARGB(255, 163, 163, 163), fontFamily: 'K2D'),
             filled: true,
             fillColor: const Color(0xFF282828),
             border: OutlineInputBorder(

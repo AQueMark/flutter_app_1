@@ -80,13 +80,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const Text(
                   'Create an Account',
                   style: TextStyle(
-                    fontSize: 32,
+                    fontSize: 36,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'K2D',
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 44),
                 
                 _buildTextField(
                   label: 'Email Address',
@@ -122,16 +122,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     });
                   },
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 36),
 
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(color: Colors.grey, fontSize: 14, fontFamily: 'K2D'),
+                    style: const TextStyle(color: Colors.grey, fontSize: 15, fontFamily: 'K2D'),
                     children: <TextSpan>[
                       const TextSpan(text: 'By continuing, you agree to our '),
                       TextSpan(
                         text: 'terms of service',
-                        style: const TextStyle(color: Color(0xFF4A55A8), fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: const Color.fromARGB(255, 22, 97, 171), fontWeight: FontWeight.bold),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             print('Terms of Service tapped!');
@@ -140,14 +140,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _signUp,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4A55A8),
+                      backgroundColor: const Color.fromARGB(255, 22, 97, 171),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -165,7 +165,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 27),
 
                 const Row(
                   children: [
@@ -177,7 +177,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Expanded(child: Divider(color: Color.fromARGB(123, 158, 158, 158))),
                   ],
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 27),
 
                 SizedBox(
                   width: double.infinity,
@@ -207,16 +207,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   children: [
                     const Text(
                       'Already have an account? ',
-                      style: TextStyle(color: Colors.grey, fontFamily: 'K2D'),
+                      style: TextStyle(color: Colors.grey, fontFamily: 'K2D', fontSize: 16),
                     ),
                     GestureDetector(
                       onTap: widget.onTap, // Use the callback here
                       child: const Text(
                         'Sign in',
                         style: TextStyle(
-                          color: Color(0xFF4A55A8),
+                          color: const Color.fromARGB(255, 22, 97, 171),
                           fontWeight: FontWeight.bold,
                           fontFamily: 'K2D',
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -251,7 +252,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.grey),
+            hintStyle: const TextStyle(color: Color.fromARGB(255, 163, 163, 163)),
             filled: true,
             fillColor: const Color(0xFF282828),
             border: OutlineInputBorder(

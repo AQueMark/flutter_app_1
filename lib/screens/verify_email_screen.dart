@@ -13,7 +13,6 @@ class VerifyEmailScreen extends StatefulWidget {
 class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
   final AuthService _authService = AuthService();
   Timer? _timer;
-  // --- ADDED: State for the "Continue" button's loading indicator ---
   bool _isChecking = false;
 
   @override
@@ -37,7 +36,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     super.dispose();
   }
 
-  // --- ADDED: A new method for the continue button's logic ---
   Future<void> _onContinuePressed() async {
     setState(() {
       _isChecking = true;
@@ -53,8 +51,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
         );
       }
     }
-    // If it IS verified, we don't need to do anything. The AuthGate's stream
-    // and the timer will detect the change and navigate automatically.
 
     if (mounted) {
       setState(() {
@@ -65,70 +61,105 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userEmail = FirebaseAuth.instance.currentUser?.email ?? 'your email';
+    final userEmail = FirebaseAuth.instance.currentUser?.email ?? '{email}';
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text("Verify Email"),
-        actions: [
-          TextButton(
-            onPressed: () => _authService.signOut(),
-            child: const Text("Cancel", style: TextStyle(color: Colors.white)),
-          )
-        ],
-      ),
-      body: Center(
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "A verification link has been sent to:\n$userEmail",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.white, height: 1.5),
+              // --- FIX: Sign out instead of pop ---
+              IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => _authService.signOut(),
+                iconSize: 32,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 110),
+
+              // Title
               const Text(
-                "Click the link to activate your account, then tap 'Continue' below.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 32),
-              
-              // --- MODIFIED: The "Continue" button ---
-              ElevatedButton(
-                onPressed: _isChecking ? null : _onContinuePressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF4A55A8),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                "Verify your email",
+                style: TextStyle(
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontFamily: 'K2D'
                 ),
-                child: _isChecking
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Continue'),
+              ),
+              const SizedBox(height: 20),
+
+              // Email message
+              Text(
+                "A verification link has been sent to $userEmail",
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontFamily: 'K2D',
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              const Text(
+                "Click the link to activate your account, then tap 'Continue' below",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                  fontFamily: 'K2D',
+                ),
+              ),
+              // --- FIX: Using Spacer correctly for layout ---
+              const Spacer(),
+
+              // Continue button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isChecking ? null : _onContinuePressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 22, 97, 171),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: _isChecking
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Continue',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                ),
               ),
               const SizedBox(height: 16),
-              TextButton.icon(
-                onPressed: () {
-                  _authService.sendEmailVerification();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Another email has been sent.')),
-                  );
-                },
-                icon: const Icon(Icons.email_outlined, size: 18),
-                label: const Text('Resend Email'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.grey,
+
+              // Resend email
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    _authService.sendEmailVerification();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Another email has been sent.')),
+                    );
+                  },
+                  child: const Text(
+                    'Resend Email',
+                    style: TextStyle(color: Colors.blueAccent,fontSize: 16),
+                  ),
                 ),
               ),
+              // Give some padding at the bottom
+              const SizedBox(height: 350),
             ],
           ),
         ),

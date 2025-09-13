@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app_1/services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -9,6 +10,8 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
+  final _authService = AuthService();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -16,17 +19,42 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     super.dispose();
   }
 
+  Future<void> _sendResetLink() async {
+    if (_emailController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your email address.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    await _authService.sendPasswordResetEmail(_emailController.text.trim());
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('If an account exists for that email, a reset link has been sent.')),
+      );
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      // --- AppBar for the back button ---
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
+          iconSize: 32,
         ),
       ),
       body: SafeArea(
@@ -36,8 +64,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
-                // --- Title ---
+                const SizedBox(height: 90),
                 const Text(
                   'Forgot Password?',
                   style: TextStyle(
@@ -46,18 +73,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 16),
-                // --- Subtitle ---
+                const SizedBox(height: 22),
                 const Text(
-                  'Enter your email to receive a password reset link',
+                  'We’ll send you a reset link if this email is registered',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey,
                   ),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 46),
 
-                // --- Email Field ---
                 _buildTextField(
                   label: 'Email Address',
                   hint: 'user@mail.com',
@@ -66,35 +91,37 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 30),
                 
-                // --- Send Reset Link Button ---
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Implement Forgot Password Logic
-                    },
+                    onPressed: _isLoading ? null : _sendResetLink,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4A55A8), // Blue color
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: const Color.fromARGB(255, 22, 97, 171),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Send Reset Link',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                    child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          'Send Reset Link',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 40),
 
-                // --- Link to Create Account Page ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
                       "Don't have an account? ",
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: Colors.grey,fontSize: 16,),
                     ),
                     GestureDetector(
                       onTap: () {
@@ -103,7 +130,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       child: const Text(
                         'Create an Account',
                         style: TextStyle(
-                          color: Color(0xFF4A55A8),
+                          color: const Color.fromARGB(255, 22, 97, 171),
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -118,7 +146,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  // Helper widget to build text fields consistently
   Widget _buildTextField({
     required String label,
     required String hint,

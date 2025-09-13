@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_app_1/services/firestore_service.dart';
 import 'package:flutter_app_1/utils/database_helper.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -8,6 +10,7 @@ class ReflectScreen extends StatefulWidget {
   final List<Lesson> allLessons;
   final VoidCallback onDataChanged;
   final bool isOpenedFromLessons;
+  final User? currentUser;
 
   const ReflectScreen({
     super.key,
@@ -15,6 +18,7 @@ class ReflectScreen extends StatefulWidget {
     required this.allLessons,
     required this.onDataChanged,
     this.isOpenedFromLessons = false,
+    required this.currentUser,
   });
 
   @override
@@ -22,6 +26,7 @@ class ReflectScreen extends StatefulWidget {
 }
 
 class _ReflectScreenState extends State<ReflectScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
   late TextEditingController _incidentController;
   late TextEditingController _lessonController;
   bool _isSaveButtonEnabled = false;
@@ -93,16 +98,20 @@ class _ReflectScreenState extends State<ReflectScreen> {
   }
 
   Future<void> _saveLesson() async {
+    if (widget.currentUser == null) return;
+
     setState(() {
       _isSaving = true;
     });
 
     final lesson = Lesson(
+      id: _existingLesson?.id,
+      userId: widget.currentUser!.uid,
       incident: _incidentController.text,
       lesson: _lessonController.text,
       date: widget.date,
     );
-    await DatabaseHelper.instance.upsert(lesson);
+    await _firestoreService.upsertLesson(lesson);
     
     widget.onDataChanged(); 
 
@@ -117,6 +126,8 @@ class _ReflectScreenState extends State<ReflectScreen> {
   }
 
   Future<void> _deleteLesson() async {
+    if (_existingLesson?.id == null) return;
+
     final bool confirmDelete = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -131,7 +142,7 @@ class _ReflectScreenState extends State<ReflectScreen> {
     ) ?? false;
 
     if (confirmDelete) {
-      await DatabaseHelper.instance.delete(widget.date);
+      await _firestoreService.deleteLesson(_existingLesson!.id!);
       widget.onDataChanged(); 
       if (widget.isOpenedFromLessons && mounted) {
         Navigator.of(context).pop();
@@ -161,10 +172,8 @@ class _ReflectScreenState extends State<ReflectScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 44),
-                    // --- UI CHANGE: "REFLECT" title is now by itself ---
                     const Text('REFLECT', style: TextStyle(color: Color(0xFCEAEAEA), fontSize: 32, fontFamily: 'K2D', fontWeight: FontWeight.w400, letterSpacing: 2.40)),
                     const SizedBox(height: 38),
-                    // --- UI CHANGE: New Row to hold the date and the buttons ---
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -172,7 +181,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
                         Text(formattedDate, style: const TextStyle(color: Color(0xB7EAEAEA), fontSize: 18, fontFamily: 'Inter', fontWeight: FontWeight.w400)),
                         Row(
                           children: [
-                            // --- UI CHANGE: Save button is now first ---
                             OutlinedButton(
                               onPressed: _isSaveButtonEnabled ? _saveLesson : null,
                               style: OutlinedButton.styleFrom(
@@ -192,7 +200,6 @@ class _ReflectScreenState extends State<ReflectScreen> {
                                   )
                                 : Text('Save', style: TextStyle(color: _isSaveButtonEnabled ? Colors.black : Colors.grey[600], fontFamily: 'Inter', fontWeight: FontWeight.bold)),
                             ),
-                            // --- UI CHANGE: Delete button is now second ---
                             if (_existingLesson != null)
                               IconButton(
                                 icon: Icon(Icons.delete_outline, color: Colors.grey[600]),

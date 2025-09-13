@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "790326444118",
+    "project_id": "selfreflectjournal-v1",
+    "storage_bucket": "selfreflectjournal-v1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:790326444118:android:b230fe793d559c34b0fbf7",
+        "android_client_info": {
+          "package_name": "com.example.flutter_app_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3zdtkxdimmsc1-2ytbCxVwIYN5uKLJJs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

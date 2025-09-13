@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_app_1/utils/database_helper.dart';
+// --- ADDED: Import for the AuthService ---
+import 'package:flutter_app_1/services/auth_service.dart';
 
 class CalendarScreen extends StatefulWidget {
-  // --- CHANGE: Receive the list of all lessons and the navigation callback ---
   final List<Lesson> allLessons;
   final Function(DateTime) onNavigateToReflect;
 
@@ -19,14 +20,14 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class CalendarScreenState extends State<CalendarScreen> {
+  // --- ADDED: Instance of the AuthService ---
+  final AuthService _authService = AuthService();
+
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
-  // --- REMOVED: No longer needs its own Future or refresh logic ---
-
   List<Lesson> _getLessonsForDay(DateTime day) {
     final dayOnly = DateTime(day.year, day.month, day.day);
-    // --- CHANGE: Use the lesson list passed into the widget ---
     return widget.allLessons.where((lesson) {
       final lessonDayOnly = DateTime(lesson.date.year, lesson.date.month, lesson.date.day);
       return isSameDay(lessonDayOnly, dayOnly);
@@ -35,8 +36,6 @@ class CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // --- REMOVED: FutureBuilder is no longer needed ---
-    
     final lessonsForSelectedDay = _getLessonsForDay(_selectedDay);
     final bool hasEntry = lessonsForSelectedDay.isNotEmpty;
 
@@ -49,15 +48,29 @@ class CalendarScreenState extends State<CalendarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 44),
-              const Text(
-                'REMEMBER',
-                style: TextStyle(
-                  color: Color(0xFCEAEAEA),
-                  fontSize: 32,
-                  fontFamily: 'K2D',
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 2.40,
-                ),
+              // --- MODIFIED: The title is now in a Row with the logout button ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'REMEMBER',
+                    style: TextStyle(
+                      color: Color(0xFCEAEAEA),
+                      fontSize: 32,
+                      fontFamily: 'K2D',
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 2.40,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout, color: Colors.grey[600]),
+                    onPressed: () {
+                      // Call the signOut method from our service
+                      _authService.signOut();
+                      // The AuthGate will handle navigation
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 36),
               Container(
@@ -68,7 +81,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                 ),
                 child: TableCalendar(
                   firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.now().add(const Duration(days: 1)), // Only allow up to today
+                  lastDay: DateTime.now().add(const Duration(days: 1)),
                   focusedDay: _focusedDay,
                   calendarFormat: CalendarFormat.month,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
@@ -160,7 +173,6 @@ class CalendarScreenState extends State<CalendarScreen> {
                   width: 100,
                   child: ElevatedButton(
                     onPressed: () {
-                      // --- CHANGE: Use the callback to navigate ---
                       widget.onNavigateToReflect(_selectedDay);
                     },
                     style: ElevatedButton.styleFrom(

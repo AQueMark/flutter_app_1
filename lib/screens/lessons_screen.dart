@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_app_1/services/firestore_service.dart';
 import 'package:flutter_app_1/utils/database_helper.dart';
 import 'package:flutter_app_1/screens/reflect_screen.dart';
 
 class LessonsScreen extends StatefulWidget {
-  // --- CHANGE: Receive master list of lessons and a refresh callback ---
+  // --- MODIFIED: Added missing parameters ---
   final List<Lesson> allLessons;
   final VoidCallback onDataChanged;
+  final User? currentUser;
+  final FirestoreService firestoreService;
 
   const LessonsScreen({
     super.key,
     required this.allLessons,
     required this.onDataChanged,
+    required this.currentUser,
+    required this.firestoreService,
   });
 
   @override
@@ -20,7 +26,7 @@ class LessonsScreen extends StatefulWidget {
 class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveClientMixin<LessonsScreen> {
   final PageController _verticalController = PageController(initialPage: 5000);
   List<Lesson> _lessons = [];
-  int _currentLessonIndexInPage = 0; // Renamed to avoid confusion
+  int _currentLessonIndexInPage = 0;
 
   @override
   bool get wantKeepAlive => true;
@@ -28,14 +34,12 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
   @override
   void initState() {
     super.initState();
-    // --- CHANGE: Use the data passed from MainScreen instead of fetching ---
     _lessons = widget.allLessons.reversed.toList();
   }
 
   @override
   void didUpdateWidget(LessonsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // --- CHANGE: If the master list changes, update the local reversed list ---
     if (widget.allLessons != oldWidget.allLessons) {
       setState(() {
         _lessons = widget.allLessons.reversed.toList();
@@ -53,7 +57,6 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
   Widget build(BuildContext context) {
     super.build(context);
 
-    // --- YOUR ORIGINAL UI AND GESTURES ARE PRESERVED HERE ---
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! < -100 && _lessons.isNotEmpty) {
@@ -154,11 +157,12 @@ class LessonsScreenState extends State<LessonsScreen> with AutomaticKeepAliveCli
   Route _createSlideRoute() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) => ReflectScreen(
-        // --- CHANGE: Pass all necessary data for an instant load ---
         date: _lessons[_currentLessonIndexInPage].date,
         allLessons: widget.allLessons,
         onDataChanged: widget.onDataChanged,
         isOpenedFromLessons: true,
+        // --- MODIFIED: Pass the currentUser to the pushed screen ---
+        currentUser: widget.currentUser,
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(1.0, 0.0);

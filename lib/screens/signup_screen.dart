@@ -131,7 +131,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const TextSpan(text: 'By continuing, you agree to our '),
                       TextSpan(
                         text: 'terms of service',
-                        style: const TextStyle(color: const Color.fromARGB(255, 22, 97, 171), fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
                         recognizer: TapGestureRecognizer()
                           ..onTap = () {
                             print('Terms of Service tapped!');
@@ -214,7 +214,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       child: const Text(
                         'Sign in',
                         style: TextStyle(
-                          color: const Color.fromARGB(255, 22, 97, 171),
+                          color: Colors.blueAccent,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'K2D',
                           fontSize: 16,

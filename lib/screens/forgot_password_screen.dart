@@ -130,7 +130,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       child: const Text(
                         'Create an Account',
                         style: TextStyle(
-                          color: const Color.fromARGB(255, 22, 97, 171),
+                          color: Colors.blueAccent,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

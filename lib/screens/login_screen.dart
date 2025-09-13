@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: const Color.fromARGB(255, 22, 97, 171),
+                          color:  Colors.blueAccent,
                           fontSize: 14,
                           fontFamily: 'K2D',
                         ),
@@ -266,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Create an Account',
                         style: TextStyle(
-                          color: const Color.fromARGB(255, 22, 97, 171),
+                          color:  Colors.blueAccent,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'K2D',
                           fontSize: 16,

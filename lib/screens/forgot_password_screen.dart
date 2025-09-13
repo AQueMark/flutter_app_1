@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app_1/services/auth_service.dart';
+import 'package:flutter_app_1/screens/signup_screen.dart'; 
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -124,9 +125,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       style: TextStyle(color: Colors.grey,fontSize: 16,),
                     ),
                     GestureDetector(
+                      // --- MODIFIED THIS SECTION ---
                       onTap: () {
-                        // TODO: Navigate to Sign Up Screen
+                        // This pops the ForgotPasswordScreen and pushes the SignUpScreen.
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SignUpScreen(
+                              // The onTap for the 'Sign in' link on the SignUpScreen will now pop itself
+                              // and take the user back to the SignInScreen.
+                              onTap: () {
+                                Navigator.pushReplacementNamed(context, '/login'); 
+                              },
+                            ),
+                          ),
+                        );
                       },
+                      // --- END OF MODIFICATION ---
                       child: const Text(
                         'Create an Account',
                         style: TextStyle(

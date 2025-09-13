@@ -10,31 +10,49 @@ class AuthService {
   // Get current user
   User? get currentUser => _auth.currentUser;
 
-  // Sign Up with Email & Password
-  Future<User?> signUpWithEmailAndPassword(String email, String password) async {
+  // --- MODIFIED: Now returns an error message String on failure, or null on success ---
+  Future<String?> signUpWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
+      await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return result.user;
+      // Success
+      return null; 
     } on FirebaseAuthException catch (e) {
-      print(e.toString());
-      return null;
+      // Return specific error messages based on the error code
+      if (e.code == 'weak-password') {
+        return 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        return 'An account already exists for that email.';
+      } else if (e.code == 'invalid-email') {
+        return 'The email address is not valid.';
+      }
+      return 'An error occurred. Please try again.';
     }
   }
 
-  // Sign In with Email & Password
-  Future<User?> signInWithEmailAndPassword(String email, String password) async {
+  // --- MODIFIED: Now returns an error message String on failure, or null on success ---
+  Future<String?> signInWithEmailAndPassword(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return result.user;
-    } on FirebaseAuthException catch (e) {
-      print(e.toString());
+      // Success
       return null;
+    } on FirebaseAuthException catch (e) {
+      // Return specific error messages based on the error code
+      if (e.code == 'user-not-found') {
+        return 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        return 'Wrong password. Please try again.';
+      } else if (e.code == 'invalid-email') {
+        return 'The email address is not valid.';
+      } else if (e.code == 'user-disabled') {
+        return 'This account has been disabled.';
+      }
+      return 'An error occurred. Please try again.';
     }
   }
 
@@ -83,5 +101,26 @@ class AuthService {
   Future<void> signOut() async {
     await GoogleSignIn().signOut();
     await _auth.signOut();
+  }
+  
+  // Delete Account
+  Future<String> deleteAccount() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.delete();
+        return "Account deleted successfully.";
+      } else {
+        return "Error: No user is currently signed in.";
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        return 'Error: This action requires you to sign out and sign back in.';
+      } else {
+        return 'Error: ${e.message}';
+      }
+    } catch (e) {
+      return 'An unexpected error occurred. Please try again.';
+    }
   }
 }

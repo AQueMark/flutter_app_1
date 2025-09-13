@@ -65,18 +65,21 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => _authService.signOut(),
+          iconSize: 32,
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- FIX: Sign out instead of pop ---
-              IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () => _authService.signOut(),
-                iconSize: 32,
-              ),
               const SizedBox(height: 110),
 
               // Title
@@ -110,7 +113,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   fontFamily: 'K2D',
                 ),
               ),
-              // --- FIX: Using Spacer correctly for layout ---
               const Spacer(),
 
               // Continue button
@@ -123,7 +125,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _isChecking
@@ -149,7 +151,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   onPressed: () {
                     _authService.sendEmailVerification();
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Another email has been sent.')),
+                      const SnackBar(content: Text('Another email has been sent to your inbox. If you don’t see it, please check your spam or junk folder.')),
                     );
                   },
                   child: const Text(
@@ -158,7 +160,6 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                   ),
                 ),
               ),
-              // Give some padding at the bottom
               const SizedBox(height: 350),
             ],
           ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:flutter_app_1/utils/database_helper.dart';
-// --- ADDED: Import for the AuthService ---
 import 'package:flutter_app_1/services/auth_service.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -20,12 +19,112 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class CalendarScreenState extends State<CalendarScreen> {
-  // --- ADDED: Instance of the AuthService ---
   final AuthService _authService = AuthService();
 
   DateTime _selectedDay = DateTime.now();
   DateTime _focusedDay = DateTime.now();
 
+  // --- NEW: Confirmation Dialog Method ---
+  Future<void> _showDeleteConfirmationDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap a button
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF282828),
+          title: const Text('Delete Account?', style: TextStyle(color: Colors.white)),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  'This is permanent and cannot be undone.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'All your journal entries will be lost forever.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Dismiss the dialog
+              },
+            ),
+            TextButton(
+              child: const Text('DELETE', style: TextStyle(color: Colors.redAccent)),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); // Dismiss the dialog
+                
+                final result = await _authService.deleteAccount();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result),
+                      backgroundColor: result.startsWith("Error") ? Colors.redAccent : Colors.green,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSettingsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text('Sign Out', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _authService.signOut();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_forever, color: Colors.redAccent),
+                title: const Text('Delete Account', style: TextStyle(color: Colors.redAccent)),
+                onTap: () {
+                  // Pop the bottom sheet first
+                  Navigator.pop(context);
+                  // Then show the new confirmation dialog
+                  _showDeleteConfirmationDialog();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.description_outlined, color: Colors.white),
+                title: const Text('Terms of Service', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  print('Terms of Service tapped');
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  
+  // The rest of your CalendarScreen code remains unchanged
   List<Lesson> _getLessonsForDay(DateTime day) {
     final dayOnly = DateTime(day.year, day.month, day.day);
     return widget.allLessons.where((lesson) {
@@ -48,7 +147,6 @@ class CalendarScreenState extends State<CalendarScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 44),
-              // --- MODIFIED: The title is now in a Row with the logout button ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -63,11 +161,9 @@ class CalendarScreenState extends State<CalendarScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.logout, color: Colors.grey[600]),
+                    icon: Icon(Icons.settings, color: Colors.grey[600]),
                     onPressed: () {
-                      // Call the signOut method from our service
-                      _authService.signOut();
-                      // The AuthGate will handle navigation
+                      _showSettingsBottomSheet(context);
                     },
                   ),
                 ],

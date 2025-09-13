@@ -32,27 +32,31 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // --- THIS METHOD IS UPDATED ---
   Future<void> _signIn() async {
     setState(() {
       _isLoading = true;
     });
 
-    final user = await _authService.signInWithEmailAndPassword(
+    // 1. Call the updated auth service method
+    final String? errorMessage = await _authService.signInWithEmailAndPassword(
       _emailController.text.trim(),
-      _passwordController.text.trim(),
+      _passwordController.text.trim(), // Password is now trimmed
     );
 
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
-    }
 
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign in failed. Please check your credentials.')),
-      );
+      // 2. If there was an error, show it
+      if (errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
+    // If sign in is successful, the AuthGate will automatically navigate.
   }
   
   Future<void> _signInWithGoogle() async {
@@ -187,18 +191,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text(
-                            'Sign in',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                            ),
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          'Sign in',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white,
                           ),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 27),
@@ -227,18 +231,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _isLoading || _isGoogleLoading ? null : _signInWithGoogle,
                     icon: _isGoogleLoading
-                        ? Container()
-                        : Image.asset('assets/icons/google_logo.png', height: 20),
+                      ? Container()
+                      : Image.asset('assets/icons/google_logo.png', height: 20),
                     label: _isGoogleLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text(
-                            'Sign in with Google',
-                            style: TextStyle(color: Colors.white, fontSize: 16),
-                          ),
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          'Sign in with Google',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Colors.grey),
@@ -321,14 +325,14 @@ class _LoginScreenState extends State<LoginScreen> {
               borderSide: BorderSide.none,
             ),
             suffixIcon: isPassword
-                ? IconButton(
-                    icon: Icon(
-                      isObscured ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: onVisibilityToggle,
-                  )
-                : null,
+              ? IconButton(
+                  icon: Icon(
+                    isObscured ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: onVisibilityToggle,
+                )
+              : null,
           ),
         ),
       ],

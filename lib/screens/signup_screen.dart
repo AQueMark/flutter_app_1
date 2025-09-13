@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app_1/services/auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
-  // --- ADDED: Callback to toggle to the login page ---
   final VoidCallback onTap;
 
   const SignUpScreen({
@@ -34,10 +33,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  // --- THIS METHOD IS UPDATED ---
   Future<void> _signUp() async {
-    if (_passwordController.text != _confirmPasswordController.text) {
+    // Trim the password input to remove leading/trailing spaces
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    // 1. Check if passwords match
+    if (password != confirmPassword) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Passwords do not match.')),
+      );
+      return;
+    }
+
+    // 2. NEW: Check for password length
+    if (password.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 8 characters long.')),
       );
       return;
     }
@@ -46,21 +59,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       _isLoading = true;
     });
 
-    final user = await _authService.signUpWithEmailAndPassword(
+    // 3. Call the updated auth service method
+    final String? errorMessage = await _authService.signUpWithEmailAndPassword(
       _emailController.text.trim(),
-      _passwordController.text.trim(),
+      password, // Use the trimmed password
     );
 
     if (mounted) {
       setState(() {
         _isLoading = false;
       });
-    }
 
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sign up failed. Please try again.')),
-      );
+      // 4. If there was an error, show it
+      if (errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
+      }
     }
     // If sign up is successful, the AuthGate will automatically navigate.
   }
@@ -154,15 +169,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                          )
-                        : const Text(
-                            'Sign Up',
-                            style: TextStyle(fontSize: 16, color: Colors.white),
-                          ),
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(fontSize: 16, color: Colors.white),
+                        ),
                   ),
                 ),
                 const SizedBox(height: 27),
@@ -201,7 +216,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // --- MODIFIED: Link to Sign In Page now uses the onTap callback ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -210,7 +224,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       style: TextStyle(color: Colors.grey, fontFamily: 'K2D', fontSize: 16),
                     ),
                     GestureDetector(
-                      onTap: widget.onTap, // Use the callback here
+                      onTap: widget.onTap,
                       child: const Text(
                         'Sign in',
                         style: TextStyle(
@@ -260,14 +274,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
               borderSide: BorderSide.none,
             ),
             suffixIcon: isPassword
-                ? IconButton(
-                    icon: Icon(
-                      isObscured ? Icons.visibility_off : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                    onPressed: onVisibilityToggle,
-                  )
-                : null,
+              ? IconButton(
+                  icon: Icon(
+                    isObscured ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey,
+                  ),
+                  onPressed: onVisibilityToggle,
+                )
+              : null,
           ),
         ),
       ],
